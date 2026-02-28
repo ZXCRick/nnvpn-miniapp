@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NN VPN – Тарифы</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ NN VPN</h1>
+            <p>Анонимный и безопасный интернет</p>
+        </div>
+
+        <div class="user-card" id="userCard">
+            <div class="avatar">👤</div>
+            <div class="user-info">
+                <h3 id="userName">Загрузка...</h3>
+                <span class="badge">FREE TIER</span>
+            </div>
+        </div>
+
+        <div class="plans">
+            <!-- 1 месяц -->
+            <div class="plan-card" onclick="selectPlan('month')">
+                <div class="plan-header">
+                    <span class="plan-name">1 месяц</span>
+                </div>
+                <div class="price">250 ₽</div>
+                <ul class="features">
+                    <li>2 устройства</li>
+                    <li>Все серверы</li>
+                    <li>Split Tunneling</li>
+                    <li>Авто-выбор сервера</li>
+                </ul>
+                <button class="select-btn">Выбрать</button>
+            </div>
+
+            <!-- 3 месяца (популярный) -->
+            <div class="plan-card popular" onclick="selectPlan('quarter')">
+                <div class="popular-badge">🔥 ХИТ</div>
+                <div class="plan-header">
+                    <span class="plan-name">3 месяца</span>
+                </div>
+                <div class="price">750 ₽</div>
+                <ul class="features">
+                    <li>2 устройства</li>
+                    <li>Все серверы</li>
+                    <li>Split Tunneling</li>
+                    <li>Авто-выбор сервера</li>
+                    <li>Экономия 0 ₽</li>
+                </ul>
+                <button class="select-btn">Выбрать</button>
+            </div>
+
+            <!-- 6 месяцев -->
+            <div class="plan-card" onclick="selectPlan('halfyear')">
+                <div class="plan-header">
+                    <span class="plan-name">6 месяцев</span>
+                </div>
+                <div class="price">1500 ₽</div>
+                <ul class="features">
+                    <li>2 устройства</li>
+                    <li>Все серверы</li>
+                    <li>Split Tunneling</li>
+                    <li>Авто-выбор сервера</li>
+                </ul>
+                <button class="select-btn">Выбрать</button>
+            </div>
+        </div>
+
+        <!-- Модальное окно оплаты -->
+        <div class="modal" id="paymentModal">
+            <div class="modal-content">
+                <h2 id="modalTitle">Оплата</h2>
+                <p id="modalDescription">Выберите способ оплаты</p>
+                
+                <div class="payment-methods">
+                    <button class="payment-btn" onclick="payWith('card')">
+                        <span>💳</span> Карта РФ
+                    </button>
+                    <button class="payment-btn" onclick="payWith('sbp')">
+                        <span>🏦</span> СБП
+                    </button>
+                    <button class="payment-btn" onclick="payWith('yoomoney')">
+                        <span>📱</span> ЮMoney
+                    </button>
+                    <button class="payment-btn" onclick="payWith('crypto')">
+                        <span>₿</span> Криптовалюта
+                    </button>
+                </div>
+                
+                <button class="close-btn" onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
