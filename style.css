@@ -2,105 +2,91 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
     background: #0A0C1A;
     color: white;
     min-height: 100vh;
-    padding: 16px;
 }
 
-.container {
+.app {
     max-width: 400px;
     margin: 0 auto;
-}
-
-/* Шапка */
-.header {
-    margin-bottom: 24px;
-    text-align: center;
-}
-
-.header h1 {
-    font-size: 36px;
-    font-weight: 800;
-    background: linear-gradient(135deg, #27E0A8, #6D4AFF);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 4px;
-}
-
-.header p {
-    color: #8A8C9A;
-    font-size: 14px;
-}
-
-/* Карточка пользователя */
-.user-card {
-    background: #1A1C2A;
-    border-radius: 20px;
     padding: 16px;
-    margin-bottom: 24px;
-    border: 1px solid #2A2C3A;
-    display: flex;
-    align-items: center;
-    gap: 16px;
 }
 
-.avatar {
-    width: 56px;
-    height: 56px;
-    background: linear-gradient(135deg, #27E0A8, #6D4AFF);
-    border-radius: 50%;
+/* Навигация */
+.nav {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    font-weight: bold;
+    gap: 4px;
+    background: #1A1C2A;
+    padding: 4px;
+    border-radius: 30px;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.nav-btn {
+    background: transparent;
+    border: none;
+    color: #8A8C9A;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nav-btn.active {
+    background: #27E0A8;
     color: #0A0C1A;
 }
 
-.user-info h3 {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 4px;
+.admin-only {
+    display: none;
 }
 
-.badge {
-    background: #2A2C3A;
+/* Контент */
+.tab {
+    display: none;
+}
+
+.tab.active {
+    display: block;
+}
+
+h2 {
+    font-size: 20px;
+    margin-bottom: 16px;
     color: #27E0A8;
-    padding: 4px 12px;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: 500;
 }
 
-/* Карточки тарифов */
+/* Тарифы */
 .plans {
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-bottom: 24px;
 }
 
-.plan-card {
+.plan {
     background: #1A1C2A;
     border: 2px solid #2A2C3A;
     border-radius: 24px;
     padding: 20px;
-    transition: all 0.2s;
-    cursor: pointer;
     position: relative;
+    cursor: pointer;
 }
 
-.plan-card.popular {
+.plan.popular {
     border-color: #27E0A8;
     background: linear-gradient(135deg, #1A1C2A, #1F2A2A);
 }
 
-.popular-badge {
+.badge {
     position: absolute;
     top: -10px;
     right: 20px;
@@ -112,87 +98,209 @@ body {
     font-weight: 600;
 }
 
-.plan-header {
-    margin-bottom: 12px;
-}
-
-.plan-name {
-    font-size: 20px;
-    font-weight: 700;
+.plan h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
 }
 
 .price {
-    font-size: 32px;
+    font-size: 28px;
     font-weight: 800;
     color: #27E0A8;
     margin-bottom: 16px;
 }
 
-.features {
+.plan ul {
     list-style: none;
     margin-bottom: 16px;
 }
 
-.features li {
+.plan li {
     color: #8A8C9A;
     font-size: 14px;
     margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-.features li::before {
-    content: "✓";
-    color: #27E0A8;
-    font-weight: bold;
-    font-size: 16px;
-}
-
-.select-btn {
-    width: 100%;
+/* Кнопки */
+.btn {
     background: transparent;
     border: 2px solid #27E0A8;
     color: #27E0A8;
-    padding: 14px;
-    border-radius: 40px;
-    font-size: 16px;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.select-btn:hover {
+.btn:hover {
     background: #27E0A8;
     color: #0A0C1A;
 }
 
-/* Модальное окно */
+.btn-block {
+    width: 100%;
+    margin-top: 12px;
+}
+
+.btn-danger {
+    border-color: #FF5E5E;
+    color: #FF5E5E;
+}
+
+.btn-danger:hover {
+    background: #FF5E5E;
+    color: #0A0C1A;
+}
+
+/* Профиль */
+.profile-card {
+    background: #1A1C2A;
+    border-radius: 24px;
+    padding: 20px;
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.avatar {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, #27E0A8, #6D4AFF);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: #0A0C1A;
+}
+
+.info p {
+    margin-bottom: 8px;
+    color: #8A8C9A;
+}
+
+.info strong {
+    color: white;
+}
+
+.tier-badge {
+    background: #27E0A8;
+    color: #0A0C1A;
+    padding: 2px 8px;
+    border-radius: 30px;
+    font-size: 12px;
+}
+
+/* Статус */
+.status-card {
+    background: #1A1C2A;
+    border-radius: 24px;
+    padding: 20px;
+}
+
+.status-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.status-label {
+    color: #8A8C9A;
+}
+
+.status-value {
+    color: #27E0A8;
+    font-weight: bold;
+}
+
+.progress-bar {
+    background: #2A2C3A;
+    height: 8px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    background: #27E0A8;
+    height: 100%;
+    border-radius: 4px;
+}
+
+.status-details p {
+    margin-bottom: 12px;
+    color: #8A8C9A;
+}
+
+.status-details span {
+    color: white;
+}
+
+/* История */
+.history-list {
+    background: #1A1C2A;
+    border-radius: 24px;
+    padding: 20px;
+}
+
+.history-empty {
+    color: #8A8C9A;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Статистика */
+.stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.stat-card {
+    background: #1A1C2A;
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+}
+
+.stat-label {
+    color: #8A8C9A;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    color: #27E0A8;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+/* Модалка */
 .modal {
+    display: none;
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     background: rgba(0,0,0,0.95);
-    display: none;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     padding: 16px;
-    z-index: 1000;
 }
 
 .modal-content {
     background: #1A1C2A;
-    border-radius: 30px;
+    border-radius: 24px;
     padding: 24px;
     width: 100%;
     max-width: 340px;
-    border: 1px solid #2A2C3A;
 }
 
-.modal-content h2 {
-    font-size: 24px;
+.modal-content h3 {
     margin-bottom: 8px;
 }
 
@@ -204,8 +312,8 @@ body {
 .payment-methods {
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    margin: 20px 0;
+    gap: 8px;
+    margin-bottom: 16px;
 }
 
 .payment-btn {
@@ -213,15 +321,10 @@ body {
     border: none;
     color: white;
     padding: 16px;
-    border-radius: 20px;
+    border-radius: 16px;
     font-size: 16px;
-    font-weight: 500;
     cursor: pointer;
     transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    justify-content: center;
 }
 
 .payment-btn:hover {
@@ -229,20 +332,21 @@ body {
     color: #0A0C1A;
 }
 
-.close-btn {
-    width: 100%;
-    background: transparent;
-    border: 2px solid #FF5E5E;
-    color: #FF5E5E;
-    padding: 14px;
-    border-radius: 40px;
-    font-size: 16px;
+/* Уведомления */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #27E0A8;
+    color: #0A0C1A;
+    padding: 12px 24px;
+    border-radius: 30px;
     font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
+    transition: transform 0.3s;
+    z-index: 1000;
 }
 
-.close-btn:hover {
-    background: #FF5E5E;
-    color: #0A0C1A;
+.toast.show {
+    transform: translateX(-50%) translateY(0);
 }
