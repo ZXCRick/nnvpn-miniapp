@@ -4,7 +4,7 @@ tg.ready();
 
 // Данные пользователя из Telegram
 const user = tg.initDataUnsafe?.user;
-const isAdmin = [123456789, 987654321].includes(user?.id); // 🔥 ID админов
+const isAdmin = [913301430, 7747044405, 706826056].includes(user?.id); // 🔥 ID админов
 
 // ========== API ==========
 const API_URL = "https://ISWYRE.pythonanywhere.com"; // Твой бэкенд
@@ -182,3 +182,4 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     loadStatus();
 });
+
