@@ -1,3 +1,4 @@
+
 let tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
@@ -60,16 +61,63 @@ if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== ПРОФИЛЬ ==========
+// ========== ПРОФИЛЬ==========
 async function loadProfile() {
     const data = await apiRequest('/api/profile');
     if (!data) return;
     
+    // Заполняем данные профиля
     document.getElementById('profile-id').textContent = data.id || user?.id;
     document.getElementById('profile-name').textContent = data.first_name || user?.first_name;
     document.getElementById('profile-username').textContent = data.username || user?.username || '—';
     document.getElementById('profile-tier').textContent = data.tier || 'FREE';
     document.getElementById('profile-date').textContent = data.created_at?.slice(0,10) || '—';
+    
+    // Обновляем аватар
+    updateAvatar(data, user);
+}
+
+// Функция обновления аватара
+function updateAvatar(profileData, telegramUser) {
+    const avatarElement = document.getElementById('profile-avatar');
+    
+    // Приоритет 1: аватар из профиля (если есть URL)
+    if (profileData?.avatar_url) {
+        avatarElement.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`;
+        return;
+    }
+    
+    // Приоритет 2: username — берём первую букву
+    if (telegramUser?.username) {
+        avatarElement.textContent = telegramUser.username[0].toUpperCase();
+        avatarElement.style.background = getGradientColor(telegramUser.username);
+        return;
+    }
+    
+    // Приоритет 3: имя пользователя
+    if (telegramUser?.first_name) {
+        avatarElement.textContent = telegramUser.first_name[0].toUpperCase();
+        avatarElement.style.background = getGradientColor(telegramUser.first_name);
+        return;
+    }
+    
+    // Дефолтный аватар (если ничего не нашлось)
+    avatarElement.textContent = '⚡';
+}
+
+// Генерируем градиент на основе строки (username/имя)
+function getGradientColor(str) {
+    // Простой хеш от строки для выбора цвета
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    
+    // Определяем цвета на основе хеша
+    const hue1 = (hash % 360 + 360) % 360;
+    const hue2 = (hue1 + 120) % 360;
+    
+    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 60%) 100%)`;
 }
 
 function copyId() {
@@ -182,4 +230,3 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     loadStatus();
 });
-
