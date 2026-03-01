@@ -116,7 +116,7 @@ if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== СТАТУС (БЕЗ КНОПКИ АКТИВАЦИИ) ==========
+// ========== СТАТУС (БЕЗ СМАЙЛИКОВ) ==========
 function loadStatus() {
     if (!user) return;
     
@@ -126,12 +126,12 @@ function loadStatus() {
     const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
     
     if (activeKey) {
-        // Активный ключ (уже активирован в приложении)
+        // Активный ключ
         document.getElementById('statusKey').textContent = activeKey.key;
         document.getElementById('statusTier').textContent = activeKey.type;
         document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
         document.getElementById('statusExpires').textContent = activeKey.expires || '—';
-        document.getElementById('keyStatus').textContent = '✅ Активен (используется в приложении)';
+        document.getElementById('keyStatus').textContent = 'Активен';
         
         if (activeKey.expires && activeKey.expires !== '—') {
             try {
@@ -147,13 +147,13 @@ function loadStatus() {
             }
         }
     } else if (inactiveKeys.length > 0) {
-        // Неактивный ключ (ожидает активации в приложении)
+        // Неактивный ключ
         const key = inactiveKeys[0];
         document.getElementById('statusKey').textContent = key.key;
         document.getElementById('statusTier').textContent = key.type;
         document.getElementById('statusDevices').textContent = '0/2';
         document.getElementById('statusExpires').textContent = key.expires || '—';
-        document.getElementById('keyStatus').textContent = '⏳ Ожидает активации в приложении';
+        document.getElementById('keyStatus').textContent = 'Неактивен';
         document.getElementById('statusProgress').style.width = '0%';
     } else {
         // Нет ключей
@@ -232,7 +232,7 @@ function payWith(method) {
         userKeys.push(newKey);
         saveUserKeys();
         
-        showToast('Ключ создан! Скопируйте его и активируйте в приложении');
+        showToast('Ключ создан');
         tg.MainButton.hide();
         closeModal();
         
@@ -434,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!userKeys.some(k => k.key === params.key)) {
             userKeys.push(newKey);
             saveUserKeys();
-            showToast('Ключ получен от бота!');
+            showToast('Ключ получен');
             
             // Переключаемся на вкладку статуса
             document.querySelector('[data-tab="status"]').click();
