@@ -55,16 +55,17 @@
                     <span class="stat-value" id="profileJoinDate">...</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Реферер</span>
-                    <span class="stat-value" id="profileReferrer">—</span>
+                    <span class="stat-label">Рефералов</span>
+                    <span class="stat-value" id="profileReferralCount">0</span>
                 </div>
             </div>
         </div>
 
         <!-- Навигация -->
         <nav class="nav">
-            <button class="nav-btn active" data-tab="plans">Тарифы</button>
+            <button class="nav-btn" data-tab="plans">Тарифы</button>
             <button class="nav-btn" data-tab="status">Статус</button>
+            <button class="nav-btn" data-tab="referral">Рефералка</button>
             <button class="nav-btn" data-tab="history">История</button>
             <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
         </nav>
@@ -72,7 +73,7 @@
         <!-- Контент -->
         <div class="content">
             <!-- Тарифы -->
-            <div class="tab active" id="tab-plans">
+            <div class="tab" id="tab-plans">
                 <h2>Выберите тариф</h2>
                 <div class="plans">
                     <div class="plan-card" onclick="selectPlan('month')">
@@ -135,7 +136,46 @@
                 <button class="btn btn-outline" onclick="refreshStatus()">Обновить статус</button>
             </div>
 
-            <!-- История -->
+            <!-- Рефералка (НОВАЯ) -->
+            <div class="tab" id="tab-referral">
+                <h2>Реферальная программа</h2>
+                
+                <div class="referral-card">
+                    <p class="referral-description">
+                        Приглашайте друзей и получайте бонусы! За каждого друга, который перейдет по вашей ссылке и активирует триал, вы получите <strong>+50 ₽ на счет</strong>.
+                    </p>
+                    
+                    <div class="referral-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Ваших рефералов</span>
+                            <span class="stat-value" id="referralCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Заработано</span>
+                            <span class="stat-value" id="referralEarned">0 ₽</span>
+                        </div>
+                    </div>
+                    
+                    <div class="referral-link-section">
+                        <label class="input-label">Ваша реферальная ссылка</label>
+                        <div class="link-copy-group">
+                            <input type="text" id="referralLink" readonly value="Загрузка..." class="referral-input">
+                            <button class="copy-link-btn" onclick="copyReferralLink()">📋</button>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-outline" onclick="refreshReferrals()">Обновить статистику</button>
+                </div>
+                
+                <div class="referral-history" id="referralHistory">
+                    <h3>История переходов</h3>
+                    <div class="history-empty" id="referralHistoryEmpty">
+                        <p>Пока нет переходов по вашей ссылке</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- История платежей -->
             <div class="tab" id="tab-history">
                 <h2>История операций</h2>
                 <div class="history-list" id="historyList">
