@@ -2,7 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
@@ -12,7 +12,7 @@ body {
 }
 
 .app {
-    max-width: 400px;
+    max-width: 420px;
     margin: 0 auto;
     padding: 20px 16px;
 }
@@ -39,7 +39,7 @@ body {
 .logo-text {
     font-size: 18px;
     font-weight: 600;
-    letter-spacing: -0.3px;
+    letter-spacing: -0.02em;
 }
 
 .header-status {
@@ -48,6 +48,7 @@ body {
     gap: 6px;
     font-size: 13px;
     color: #8A8C9A;
+    font-weight: 400;
 }
 
 .status-dot {
@@ -77,12 +78,14 @@ body {
     font-size: 22px;
     font-weight: 600;
     margin-bottom: 6px;
+    letter-spacing: -0.02em;
 }
 
 .welcome-text p {
     font-size: 14px;
     color: #8A8C9A;
     line-height: 1.5;
+    font-weight: 400;
 }
 
 /* Профиль */
@@ -104,7 +107,7 @@ body {
     width: 64px;
     height: 64px;
     background: linear-gradient(135deg, #27E0A8 0%, #1B8C6A 100%);
-    border-radius: 16px;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -128,6 +131,7 @@ body {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 8px;
+    letter-spacing: -0.02em;
 }
 
 .profile-meta {
@@ -142,6 +146,7 @@ body {
     font-weight: 500;
     background: #1E222F;
     color: #FFFFFF;
+    letter-spacing: 0.02em;
 }
 
 .badge.outline {
@@ -152,7 +157,7 @@ body {
 
 .profile-stats {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr 1fr;
     gap: 12px;
     padding-top: 16px;
     border-top: 1px solid #1E222F;
@@ -168,7 +173,8 @@ body {
     font-size: 10px;
     color: #8A8C9A;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.04em;
+    font-weight: 500;
 }
 
 .stat-value {
@@ -176,16 +182,17 @@ body {
     font-weight: 500;
     color: #FFFFFF;
     word-break: break-word;
+    letter-spacing: -0.01em;
 }
 
-/* Навигация */
+/* Навигация (улучшенный дизайн) */
 .nav {
     display: flex;
     gap: 4px;
     background: #121624;
     border: 1px solid #1E222F;
     border-radius: 30px;
-    padding: 4px;
+    padding: 6px 4px;
     margin-bottom: 24px;
 }
 
@@ -194,17 +201,55 @@ body {
     background: transparent;
     border: none;
     color: #8A8C9A;
-    padding: 8px 0;
+    padding: 10px 0;
     border-radius: 30px;
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.nav-icon {
+    font-size: 16px;
+    margin-bottom: 2px;
 }
 
 .nav-btn.active {
     background: #27E0A8;
     color: #0B0E1A;
+    font-weight: 600;
+}
+
+.nav-btn.active .nav-icon {
+    filter: brightness(0.8);
+}
+
+/* Заголовки секций */
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+    color: #FFFFFF;
+}
+
+.stats-subtitle {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #8A8C9A;
+    letter-spacing: 0.02em;
+}
+
+.promo-subtitle {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #8A8C9A;
 }
 
 /* Тарифы */
@@ -220,13 +265,14 @@ body {
     border-radius: 20px;
     padding: 20px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     position: relative;
 }
 
 .plan-card:hover {
     border-color: #27E0A8;
-    box-shadow: 0 4px 20px rgba(39, 224, 168, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(39, 224, 168, 0.15);
 }
 
 .plan-card.popular {
@@ -244,12 +290,14 @@ body {
     border-radius: 30px;
     font-size: 11px;
     font-weight: 600;
+    letter-spacing: 0.02em;
 }
 
 .plan-card h3 {
     font-size: 16px;
     font-weight: 600;
     margin-bottom: 8px;
+    letter-spacing: -0.02em;
 }
 
 .price {
@@ -257,6 +305,7 @@ body {
     font-weight: 700;
     color: #27E0A8;
     margin-bottom: 16px;
+    letter-spacing: -0.02em;
 }
 
 .plan-card ul {
@@ -267,10 +316,11 @@ body {
 .plan-card li {
     color: #8A8C9A;
     font-size: 13px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 8px;
+    font-weight: 400;
 }
 
 /* Кнопки */
@@ -283,8 +333,9 @@ body {
     font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     width: 100%;
+    letter-spacing: 0.02em;
 }
 
 .btn:hover {
@@ -300,6 +351,7 @@ body {
 .btn-outline:hover {
     background: #1E222F;
     color: #FFFFFF;
+    border-color: #1E222F;
 }
 
 .btn-danger {
@@ -327,6 +379,18 @@ body {
     margin-bottom: 16px;
 }
 
+.status-label {
+    font-size: 12px;
+    color: #8A8C9A;
+    font-weight: 400;
+}
+
+.status-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: #27E0A8;
+}
+
 .progress-bar {
     background: #1E222F;
     height: 6px;
@@ -349,37 +413,51 @@ body {
     margin-bottom: 16px;
 }
 
-.status-info p {
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.info-label {
     font-size: 13px;
     color: #8A8C9A;
 }
 
-.status-info span {
-    color: #FFFFFF;
+.info-value {
+    font-size: 13px;
     font-weight: 500;
+    color: #FFFFFF;
 }
 
-/* История */
-.history-list {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 20px;
-    padding: 20px;
-    min-height: 150px;
-}
-
-.history-empty {
-    color: #8A8C9A;
+/* Пустое состояние */
+.empty-state {
     text-align: center;
-    padding: 30px 0;
+    padding: 40px 0;
+    color: #8A8C9A;
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 12px;
+    display: block;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    font-size: 13px;
+    font-weight: 400;
 }
 
 /* Статистика */
+.stats-section {
+    margin-bottom: 24px;
+}
+
 .stats-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin-bottom: 16px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
 }
 
 .stat-card {
@@ -388,6 +466,147 @@ body {
     border-radius: 16px;
     padding: 16px;
     text-align: center;
+}
+
+/* Промо */
+.promo-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 16px;
+    padding: 16px 8px;
+    text-align: center;
+}
+
+.summary-label {
+    display: block;
+    font-size: 10px;
+    color: #8A8C9A;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #27E0A8;
+}
+
+.promo-create {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.create-form {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-input {
+    flex: 1;
+    background: #0B0E1A;
+    border: 1px solid #1E222F;
+    border-radius: 12px;
+    padding: 12px;
+    color: #FFFFFF;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.promo-input:focus {
+    outline: none;
+    border-color: #27E0A8;
+}
+
+.promo-links {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.promo-link-item {
+    background: #0B0E1A;
+    border: 1px solid #1E222F;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.promo-link-item:last-child {
+    margin-bottom: 0;
+}
+
+.promo-link-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.promo-link-name {
+    font-weight: 600;
+    color: #27E0A8;
+    font-size: 14px;
+}
+
+.promo-link-url {
+    font-family: 'SF Mono', 'Monaco', monospace;
+    font-size: 11px;
+    color: #8A8C9A;
+    word-break: break-all;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #121624;
+    border-radius: 8px;
+}
+
+.promo-link-stats {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.promo-stat {
+    text-align: center;
+}
+
+.promo-stat-label {
+    display: block;
+    font-size: 8px;
+    color: #8A8C9A;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.promo-stat-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #FFFFFF;
+}
+
+.promo-link-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-link-actions .btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 11px;
 }
 
 /* Модалка */
@@ -415,12 +634,15 @@ body {
 }
 
 .modal-content h3 {
+    font-size: 18px;
     margin-bottom: 8px;
+    font-weight: 600;
 }
 
 .modal-content p {
     color: #8A8C9A;
     margin-bottom: 20px;
+    font-size: 13px;
 }
 
 .payment-methods {
@@ -438,7 +660,7 @@ body {
     border-radius: 16px;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -464,6 +686,7 @@ body {
     transition: transform 0.3s ease;
     z-index: 1000;
     font-size: 14px;
+    box-shadow: 0 8px 24px rgba(39, 224, 168, 0.3);
 }
 
 .toast.show {
@@ -475,103 +698,7 @@ body {
     display: none;
 }
 
-/* Адаптивность */
-@media (max-width: 380px) {
-    .profile-stats {
-        grid-template-columns: 1fr;
-        gap: 8px;
-    }
-}
-/* Рефералка */
-.referral-card {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-}
-
-.referral-description {
-    color: #8A8C9A;
-    font-size: 13px;
-    line-height: 1.5;
-    margin-bottom: 20px;
-}
-
-.referral-description strong {
-    color: #27E0A8;
-}
-
-.referral-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-    padding: 16px;
-    background: #0B0E1A;
-    border-radius: 16px;
-}
-
-.referral-link-section {
-    margin-bottom: 16px;
-}
-
-.input-label {
-    display: block;
-    font-size: 11px;
-    color: #8A8C9A;
-    margin-bottom: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-}
-
-.link-copy-group {
-    display: flex;
-    gap: 8px;
-}
-
-.referral-input {
-    flex: 1;
-    background: #0B0E1A;
-    border: 1px solid #1E222F;
-    border-radius: 12px;
-    padding: 12px;
-    color: #FFFFFF;
-    font-size: 12px;
-    font-family: monospace;
-}
-
-.copy-link-btn {
-    width: 44px;
-    height: 44px;
-    background: #1E222F;
-    border: none;
-    border-radius: 12px;
-    color: #FFFFFF;
-    font-size: 18px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.copy-link-btn:hover {
-    background: #27E0A8;
-    color: #0B0E1A;
-}
-
-.referral-history {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 20px;
-    padding: 20px;
-}
-
-.referral-history h3 {
-    font-size: 14px;
-    margin-bottom: 16px;
-    color: #8A8C9A;
-}
-
-/* Фикс для вкладок */
+/* Табы */
 .tab {
     display: none;
 }
@@ -579,157 +706,3 @@ body {
 .tab.active {
     display: block;
 }
-/* Статистика */
-.stats-section {
-    margin-bottom: 24px;
-}
-
-.stats-section h3 {
-    font-size: 14px;
-    color: #8A8C9A;
-    margin-bottom: 12px;
-}
-
-/* Промо */
-.promo-summary {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 24px;
-}
-
-.summary-card {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 16px;
-    padding: 16px 8px;
-    text-align: center;
-}
-
-.summary-label {
-    display: block;
-    font-size: 10px;
-    color: #8A8C9A;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-}
-
-.summary-value {
-    font-size: 18px;
-    font-weight: 700;
-    color: #27E0A8;
-}
-
-.promo-create {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.promo-create h3 {
-    font-size: 14px;
-    margin-bottom: 16px;
-}
-
-.create-form {
-    display: flex;
-    gap: 8px;
-}
-
-.promo-input {
-    flex: 1;
-    background: #0B0E1A;
-    border: 1px solid #1E222F;
-    border-radius: 12px;
-    padding: 12px;
-    color: #FFFFFF;
-    font-size: 13px;
-}
-
-.promo-links {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-}
-
-.promo-links h3 {
-    font-size: 14px;
-    margin-bottom: 16px;
-}
-
-.promo-link-item {
-    background: #0B0E1A;
-    border: 1px solid #1E222F;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
-}
-
-.promo-link-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.promo-link-name {
-    font-weight: 600;
-    color: #27E0A8;
-}
-
-.promo-link-url {
-    font-family: monospace;
-    font-size: 11px;
-    color: #8A8C9A;
-    word-break: break-all;
-    margin-bottom: 12px;
-    padding: 8px;
-    background: #121624;
-    border-radius: 8px;
-}
-
-.promo-link-stats {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.promo-stat {
-    text-align: center;
-}
-
-.promo-stat-label {
-    display: block;
-    font-size: 9px;
-    color: #8A8C9A;
-    margin-bottom: 4px;
-}
-
-.promo-stat-value {
-    font-size: 14px;
-    font-weight: 600;
-}
-
-.promo-link-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.promo-link-actions .btn {
-    flex: 1;
-    padding: 8px;
-    font-size: 11px;
-}
-
-.promo-empty {
-    color: #8A8C9A;
-    text-align: center;
-    padding: 30px 0;
-}
-
-
