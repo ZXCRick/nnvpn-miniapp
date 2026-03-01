@@ -51,21 +51,70 @@ function loadProfile() {
         avatarPlaceholder.textContent = initials || '?';
     }
     
+    // Тариф
+    const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
+    document.getElementById('profileTier').textContent = tier;
+    
     // Загружаем ключи пользователя
     loadUserKeys();
 }
 
+// ========== РАБОТА С КЛЮЧАМИ ==========
 function loadUserKeys() {
+    if (!user) return;
+    
     const saved = localStorage.getItem(`keys_${user.id}`);
     if (saved) {
         userKeys = JSON.parse(saved);
     } else {
         userKeys = [];
+        // Проверяем, нет ли ключа из бота в sessionStorage (временное хранилище)
+        const botKey = sessionStorage.getItem(`temp_key_${user.id}`);
+        if (botKey) {
+            try {
+                const keyData = JSON.parse(botKey);
+                userKeys.push(keyData);
+                sessionStorage.removeItem(`temp_key_${user.id}`);
+                saveUserKeys();
+            } catch (e) {}
+        }
     }
 }
 
 function saveUserKeys() {
+    if (!user) return;
     localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
+}
+
+// Функция для сохранения ключа из бота (вызывается из обработчика start)
+function saveKeyFromBot(key, expires) {
+    if (!user) return false;
+    
+    // Проверяем, нет ли уже такого ключа
+    if (userKeys.some(k => k.key === key)) {
+        return false;
+    }
+    
+    const newKey = {
+        id: Date.now(),
+        key: key,
+        type: 'DEMO',
+        status: 'inactive',
+        expires: expires,
+        devices: 0,
+        created: new Date().toISOString()
+    };
+    
+    userKeys.push(newKey);
+    saveUserKeys();
+    
+    // Если мы на вкладке статуса, обновляем
+    if (document.querySelector('[data-tab="status"]')?.classList.contains('active')) {
+        loadStatus();
+    }
+    
+    showToast('Ключ получен! Активируйте его');
+    return true;
 }
 
 // ========== НАВИГАЦИЯ ==========
@@ -113,9 +162,17 @@ function loadStatus() {
         
         // Прогресс
         if (activeKey.expires && activeKey.expires !== '—') {
-            const daysLeft = Math.ceil((new Date(activeKey.expires) - new Date()) / (1000 * 60 * 60 * 24));
-            const progress = Math.min(100, Math.max(0, (daysLeft / 30) * 100));
-            document.getElementById('statusProgress').style.width = progress + '%';
+            try {
+                const [day, month, year] = activeKey.expires.split('.');
+                const expiresDate = new Date(`${year}-${month}-${day}`);
+                const now = new Date();
+                const totalDays = 30; // Примерно для демо
+                const daysLeft = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
+                const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
+                document.getElementById('statusProgress').style.width = progress + '%';
+            } catch (e) {
+                document.getElementById('statusProgress').style.width = '0%';
+            }
         }
     } else if (inactiveKeys.length > 0) {
         // Есть неактивный ключ
@@ -169,6 +226,7 @@ function activateKey() {
 // ========== УВЕДОМЛЕНИЯ ==========
 function showToast(text, duration = 3000) {
     const toast = document.getElementById('toast');
+    if (!toast) return;
     toast.textContent = text;
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), duration);
@@ -283,6 +341,7 @@ function loadPromoLinks() {
 
 function renderPromoLinks() {
     const container = document.getElementById('promoLinksList');
+    if (!container) return;
     
     if (promoLinks.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Нет созданных ссылок</p></div>';
@@ -395,17 +454,43 @@ function refreshPromoStats() {
     showToast('Статистика обновлена');
 }
 
+// ========== ПРОВЕРКА START-ПАРАМЕТРОВ ==========
+function checkStartParams() {
+    if (!user) return;
+    
+    // Проверяем, есть ли параметры в URL (для Telegram Web App)
+    const params = new URLSearchParams(window.location.search);
+    const startParam = params.get('tgWebAppStartParam');
+    
+    if (startParam && startParam.startsWith('key_')) {
+        // Формат: key_КЛЮЧ_ДАТА
+        const parts = startParam.split('_');
+        if (parts.length >= 3) {
+            const key = parts[1];
+            const expires = parts[2];
+            saveKeyFromBot(key, expires);
+        }
+    }
+}
+
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     loadStatus();
+    checkStartParams();
     
     // По умолчанию показываем тарифы
     document.querySelector('[data-tab="plans"]').classList.add('active');
     document.getElementById('tab-plans').classList.add('active');
     
     // Закрытие модалки
-    document.getElementById('paymentModal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
 });
+
+// Экспортируем функцию для бота (будет вызвана извне если нужно)
+window.saveKeyFromBot = saveKeyFromBot;
