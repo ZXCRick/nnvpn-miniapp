@@ -55,8 +55,8 @@
                     <span class="stat-value" id="profileJoinDate">...</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Рефералов</span>
-                    <span class="stat-value" id="profileReferralCount">0</span>
+                    <span class="stat-label">ID</span>
+                    <span class="stat-value" id="profileIdShort">...</span>
                 </div>
             </div>
         </div>
@@ -65,9 +65,9 @@
         <nav class="nav">
             <button class="nav-btn" data-tab="plans">Тарифы</button>
             <button class="nav-btn" data-tab="status">Статус</button>
-            <button class="nav-btn" data-tab="referral">Рефералка</button>
             <button class="nav-btn" data-tab="history">История</button>
             <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
+            <button class="nav-btn admin-only" data-tab="promo">Промо</button>
         </nav>
 
         <!-- Контент -->
@@ -112,7 +112,7 @@
                 </div>
             </div>
 
-            <!-- Статус подписки -->
+            <!-- Статус -->
             <div class="tab" id="tab-status">
                 <h2>Статус подписки</h2>
                 <div class="status-card">
@@ -136,46 +136,7 @@
                 <button class="btn btn-outline" onclick="refreshStatus()">Обновить статус</button>
             </div>
 
-            <!-- Рефералка (НОВАЯ) -->
-            <div class="tab" id="tab-referral">
-                <h2>Реферальная программа</h2>
-                
-                <div class="referral-card">
-                    <p class="referral-description">
-                        Приглашайте друзей и получайте бонусы! За каждого друга, который перейдет по вашей ссылке и активирует триал, вы получите <strong>+50 ₽ на счет</strong>.
-                    </p>
-                    
-                    <div class="referral-stats">
-                        <div class="stat-item">
-                            <span class="stat-label">Ваших рефералов</span>
-                            <span class="stat-value" id="referralCount">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label">Заработано</span>
-                            <span class="stat-value" id="referralEarned">0 ₽</span>
-                        </div>
-                    </div>
-                    
-                    <div class="referral-link-section">
-                        <label class="input-label">Ваша реферальная ссылка</label>
-                        <div class="link-copy-group">
-                            <input type="text" id="referralLink" readonly value="Загрузка..." class="referral-input">
-                            <button class="copy-link-btn" onclick="copyReferralLink()">📋</button>
-                        </div>
-                    </div>
-                    
-                    <button class="btn btn-outline" onclick="refreshReferrals()">Обновить статистику</button>
-                </div>
-                
-                <div class="referral-history" id="referralHistory">
-                    <h3>История переходов</h3>
-                    <div class="history-empty" id="referralHistoryEmpty">
-                        <p>Пока нет переходов по вашей ссылке</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- История платежей -->
+            <!-- История -->
             <div class="tab" id="tab-history">
                 <h2>История операций</h2>
                 <div class="history-list" id="historyList">
@@ -185,28 +146,115 @@
                 </div>
             </div>
 
-            <!-- Статистика (админ) -->
+            <!-- СТАТИСТИКА (админ) -->
             <div class="tab" id="tab-stats">
-                <h2>Статистика сервиса</h2>
-                <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card">
-                        <span class="stat-label">Пользователей</span>
-                        <span class="stat-value" id="statsUsers">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Активных</span>
-                        <span class="stat-value" id="statsActive">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Продаж</span>
-                        <span class="stat-value" id="statsSales">0</span>
-                    </div>
-                    <div class="stat-card">
-                        <span class="stat-label">Демо</span>
-                        <span class="stat-value" id="statsDemo">0</span>
+                <h2>Общая статистика</h2>
+                
+                <div class="stats-section">
+                    <h3>👥 Пользователи</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Всего</span>
+                            <span class="stat-value" id="statsTotalUsers">1,234</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Активных сегодня</span>
+                            <span class="stat-value" id="statsActiveToday">345</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Новых за неделю</span>
+                            <span class="stat-value" id="statsNewWeek">123</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Демо-ключей</span>
+                            <span class="stat-value" id="statsDemoKeys">456</span>
+                        </div>
                     </div>
                 </div>
-                <button class="btn" onclick="refreshStats()">Обновить</button>
+                
+                <div class="stats-section">
+                    <h3>💰 Финансы</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Всего продаж</span>
+                            <span class="stat-value" id="statsTotalSales">789</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">На сумму</span>
+                            <span class="stat-value" id="statsTotalRevenue">187,250 ₽</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">За месяц</span>
+                            <span class="stat-value" id="statsMonthRevenue">45,600 ₽</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Средний чек</span>
+                            <span class="stat-value" id="statsAvgCheck">237 ₽</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stats-section">
+                    <h3>📊 Конверсия</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-label">Клики → Демо</span>
+                            <span class="stat-value" id="statsClickToDemo">24%</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Демо → Покупка</span>
+                            <span class="stat-value" id="statsDemoToPaid">12%</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">Отказов</span>
+                            <span class="stat-value" id="statsChurn">5.6%</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-label">LTV</span>
+                            <span class="stat-value" id="statsLTV">1,450 ₽</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="refreshStats()">🔄 Обновить статистику</button>
+            </div>
+
+            <!-- ПРОМО (для пиарщика) -->
+            <div class="tab" id="tab-promo">
+                <h2>Промо-кампании</h2>
+                
+                <div class="promo-summary">
+                    <div class="summary-card">
+                        <span class="summary-label">Всего кликов</span>
+                        <span class="summary-value" id="promoTotalClicks">0</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Переходов в демо</span>
+                        <span class="summary-value" id="promoTotalDemos">0</span>
+                    </div>
+                    <div class="summary-card">
+                        <span class="summary-label">Конверсия</span>
+                        <span class="summary-value" id="promoTotalConv">0%</span>
+                    </div>
+                </div>
+                
+                <div class="promo-create">
+                    <h3>➕ Новая ссылка</h3>
+                    <div class="create-form">
+                        <input type="text" id="promoNameInput" placeholder="Название (например: telegram_channel)" class="promo-input">
+                        <button class="btn" onclick="createPromoLink()">Создать</button>
+                    </div>
+                </div>
+                
+                <div class="promo-links">
+                    <h3>📋 Мои ссылки</h3>
+                    <div id="promoLinksList">
+                        <!-- Сюда будут добавляться созданные ссылки -->
+                        <div class="promo-empty">У вас пока нет созданных ссылок</div>
+                    </div>
+                </div>
+                
+                <button class="btn btn-outline" onclick="refreshPromoStats()">🔄 Обновить статистику</button>
             </div>
         </div>
     </div>
