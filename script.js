@@ -26,8 +26,8 @@ function loadProfile() {
     // Username
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
-    // 📅 Дата первого запуска (хранится локально)
-    let joinDate = localStorage.getItem('nnvpn_join_date');
+    // 📅 Дата первого запуска
+    let joinDate = localStorage.getItem(`join_date_${user.id}`);
     if (!joinDate) {
         const now = new Date();
         joinDate = now.toLocaleDateString('ru-RU', { 
@@ -35,8 +35,7 @@ function loadProfile() {
             month: 'long', 
             year: 'numeric' 
         });
-        localStorage.setItem('nnvpn_join_date', joinDate);
-        localStorage.setItem('nnvpn_join_timestamp', now.getTime());
+        localStorage.setItem(`join_date_${user.id}`, joinDate);
     }
     document.getElementById('profileJoinDate').textContent = joinDate;
     
@@ -53,32 +52,99 @@ function loadProfile() {
         avatarPlaceholder.textContent = initials || '?';
     }
     
-    // Тариф (из localStorage или demo)
-    const tier = localStorage.getItem('nnvpn_tier') || 'FREE';
+    // Тариф
+    const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
     document.getElementById('profileTier').textContent = tier;
 }
 
-// ========== УВЕДОМЛЕНИЯ ==========
-function showToast(text, duration = 3000) {
-    const toast = document.getElementById('toast');
-    toast.textContent = text;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), duration);
+// ========== РЕФЕРАЛКА ==========
+function loadReferralData() {
+    if (!user) return;
+    
+    // Реферальная ссылка
+    const referralLink = `https://t.me/NNVPN_bot?start=ref_${user.id}`;
+    document.getElementById('referralLink').value = referralLink;
+    
+    // Статистика рефералов
+    const referrals = JSON.parse(localStorage.getItem(`referrals_${user.id}`) || '[]');
+    document.getElementById('referralCount').textContent = referrals.length;
+    
+    // Заработано (50₽ за реферала)
+    const earned = referrals.length * 50;
+    document.getElementById('referralEarned').textContent = `${earned} ₽`;
+    
+    // История переходов
+    const historyEl = document.getElementById('referralHistory');
+    const emptyEl = document.getElementById('referralHistoryEmpty');
+    
+    if (referrals.length > 0) {
+        emptyEl.style.display = 'none';
+        
+        let historyHTML = '<div class="referral-history-list">';
+        referrals.forEach(ref => {
+            historyHTML += `
+                <div class="referral-item">
+                    <span>${ref.name || 'Пользователь'}</span>
+                    <span class="badge outline">${ref.date || 'недавно'}</span>
+                </div>
+            `;
+        });
+        historyHTML += '</div>';
+        
+        // Проверяем есть ли уже список
+        const existingList = document.querySelector('.referral-history-list');
+        if (existingList) {
+            existingList.remove();
+        }
+        
+        const listDiv = document.createElement('div');
+        listDiv.className = 'referral-history-list';
+        listDiv.innerHTML = historyHTML;
+        historyEl.appendChild(listDiv);
+    } else {
+        emptyEl.style.display = 'block';
+        const existingList = document.querySelector('.referral-history-list');
+        if (existingList) existingList.remove();
+    }
 }
 
-// ========== НАВИГАЦИЯ ==========
+function copyReferralLink() {
+    const link = document.getElementById('referralLink');
+    link.select();
+    navigator.clipboard.writeText(link.value);
+    showToast('Ссылка скопирована');
+}
+
+function refreshReferrals() {
+    loadReferralData();
+    showToast('Статистика обновлена');
+}
+
+// ========== НАВИГАЦИЯ (ИСПРАВЛЕНО) ==========
 document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', function(e) {
+        // Убираем active у всех кнопок
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        // Добавляем active текущей
+        this.classList.add('active');
         
+        // Убираем active у всех табов
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active');
         
-        // Загружаем данные при переключении
-        switch(btn.dataset.tab) {
-            case 'status': loadStatus(); break;
-            case 'stats': if (isAdmin) loadStats(); break;
+        // Показываем нужный таб
+        const tabId = `tab-${this.dataset.tab}`;
+        const activeTab = document.getElementById(tabId);
+        if (activeTab) {
+            activeTab.classList.add('active');
+            
+            // Загружаем данные при необходимости
+            if (this.dataset.tab === 'referral') {
+                loadReferralData();
+            } else if (this.dataset.tab === 'status') {
+                loadStatus();
+            } else if (this.dataset.tab === 'stats' && isAdmin) {
+                loadStats();
+            }
         }
     });
 });
@@ -90,8 +156,10 @@ if (isAdmin) {
 
 // ========== СТАТУС ПОДПИСКИ ==========
 function loadStatus() {
-    const demoKey = localStorage.getItem('nnvpn_demo_key');
-    const expires = localStorage.getItem('nnvpn_expires');
+    if (!user) return;
+    
+    const demoKey = localStorage.getItem(`demo_key_${user.id}`);
+    const expires = localStorage.getItem(`expires_${user.id}`);
     
     if (demoKey) {
         document.getElementById('statusKey').textContent = demoKey;
@@ -126,6 +194,14 @@ function copyKey() {
         navigator.clipboard.writeText(key);
         showToast('Ключ скопирован');
     }
+}
+
+// ========== УВЕДОМЛЕНИЯ ==========
+function showToast(text, duration = 3000) {
+    const toast = document.getElementById('toast');
+    toast.textContent = text;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
 }
 
 // ========== ТАРИФЫ ==========
@@ -183,6 +259,10 @@ function refreshStats() {
 document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     loadStatus();
+    
+    // По умолчанию показываем тарифы
+    document.querySelector('[data-tab="plans"]').classList.add('active');
+    document.getElementById('tab-plans').classList.add('active');
     
     // Закрытие модалки по клику вне
     document.getElementById('paymentModal').addEventListener('click', function(e) {
