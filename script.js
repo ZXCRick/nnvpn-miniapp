@@ -10,6 +10,15 @@ const isAdmin = user && ADMIN_IDS.includes(user.id);
 // Хранилище ключей
 let userKeys = [];
 
+// ========== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ИЗ URL ==========
+function getUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        key: params.get('key'),
+        expires: params.get('expires')
+    };
+}
+
 // ========== ПРОФИЛЬ ==========
 function loadProfile() {
     if (!user) {
@@ -68,53 +77,12 @@ function loadUserKeys() {
         userKeys = JSON.parse(saved);
     } else {
         userKeys = [];
-        // Проверяем, нет ли ключа из бота в sessionStorage (временное хранилище)
-        const botKey = sessionStorage.getItem(`temp_key_${user.id}`);
-        if (botKey) {
-            try {
-                const keyData = JSON.parse(botKey);
-                userKeys.push(keyData);
-                sessionStorage.removeItem(`temp_key_${user.id}`);
-                saveUserKeys();
-            } catch (e) {}
-        }
     }
 }
 
 function saveUserKeys() {
     if (!user) return;
     localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
-}
-
-// Функция для сохранения ключа из бота (вызывается из обработчика start)
-function saveKeyFromBot(key, expires) {
-    if (!user) return false;
-    
-    // Проверяем, нет ли уже такого ключа
-    if (userKeys.some(k => k.key === key)) {
-        return false;
-    }
-    
-    const newKey = {
-        id: Date.now(),
-        key: key,
-        type: 'DEMO',
-        status: 'inactive',
-        expires: expires,
-        devices: 0,
-        created: new Date().toISOString()
-    };
-    
-    userKeys.push(newKey);
-    saveUserKeys();
-    
-    // Если мы на вкладке статуса, обновляем
-    if (document.querySelector('[data-tab="status"]')?.classList.contains('active')) {
-        loadStatus();
-    }
-    
-    showToast('Ключ получен! Активируйте его');
-    return true;
 }
 
 // ========== НАВИГАЦИЯ ==========
@@ -142,7 +110,7 @@ if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== СТАТУС (с поддержкой активации) ==========
+// ========== СТАТУС ==========
 function loadStatus() {
     if (!user) return;
     
@@ -152,7 +120,6 @@ function loadStatus() {
     const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
     
     if (activeKey) {
-        // Есть активный ключ
         document.getElementById('statusKey').textContent = activeKey.key;
         document.getElementById('statusTier').textContent = activeKey.type;
         document.getElementById('statusDevices').textContent = `${activeKey.devices || 0}/2`;
@@ -160,13 +127,12 @@ function loadStatus() {
         document.getElementById('keyStatus').textContent = 'Активен';
         document.getElementById('activateKeyBtn').style.display = 'none';
         
-        // Прогресс
         if (activeKey.expires && activeKey.expires !== '—') {
             try {
                 const [day, month, year] = activeKey.expires.split('.');
                 const expiresDate = new Date(`${year}-${month}-${day}`);
                 const now = new Date();
-                const totalDays = 30; // Примерно для демо
+                const totalDays = 30;
                 const daysLeft = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
                 const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
                 document.getElementById('statusProgress').style.width = progress + '%';
@@ -175,7 +141,6 @@ function loadStatus() {
             }
         }
     } else if (inactiveKeys.length > 0) {
-        // Есть неактивный ключ
         const key = inactiveKeys[0];
         document.getElementById('statusKey').textContent = key.key;
         document.getElementById('statusTier').textContent = key.type;
@@ -185,7 +150,6 @@ function loadStatus() {
         document.getElementById('activateKeyBtn').style.display = 'block';
         document.getElementById('statusProgress').style.width = '0%';
     } else {
-        // Нет ключей
         document.getElementById('statusKey').textContent = '—';
         document.getElementById('statusTier').textContent = 'FREE';
         document.getElementById('statusDevices').textContent = '0/2';
@@ -259,7 +223,6 @@ function payWith(method) {
     tg.MainButton.setText('Обработка...');
     tg.MainButton.show();
     
-    // Генерируем ключ
     setTimeout(() => {
         const key = generateKey('VPN');
         const expires = new Date();
@@ -281,7 +244,6 @@ function payWith(method) {
         tg.MainButton.hide();
         closeModal();
         
-        // Если мы на вкладке статуса, обновляем
         if (document.querySelector('[data-tab="status"]').classList.contains('active')) {
             loadStatus();
         }
@@ -296,29 +258,6 @@ function generateKey(prefix) {
         result += chars[Math.floor(Math.random() * chars.length)];
     }
     return result;
-}
-
-// ========== СТАТИСТИКА (АДМИН) ==========
-function loadStats() {
-    if (!isAdmin) return;
-    
-    document.getElementById('statsTotalUsers').textContent = '1 234';
-    document.getElementById('statsActiveToday').textContent = '345';
-    document.getElementById('statsNewWeek').textContent = '123';
-    document.getElementById('statsDemoKeys').textContent = '456';
-    document.getElementById('statsTotalSales').textContent = '789';
-    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
-    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
-    document.getElementById('statsAvgCheck').textContent = '237 ₽';
-    document.getElementById('statsClickToDemo').textContent = '24%';
-    document.getElementById('statsDemoToPaid').textContent = '12%';
-    document.getElementById('statsChurn').textContent = '5.6%';
-    document.getElementById('statsLTV').textContent = '1 450 ₽';
-}
-
-function refreshStats() {
-    loadStats();
-    showToast('Статистика обновлена');
 }
 
 // ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
@@ -454,34 +393,66 @@ function refreshPromoStats() {
     showToast('Статистика обновлена');
 }
 
-// ========== ПРОВЕРКА START-ПАРАМЕТРОВ ==========
-function checkStartParams() {
-    if (!user) return;
+function loadStats() {
+    if (!isAdmin) return;
     
-    // Проверяем, есть ли параметры в URL (для Telegram Web App)
-    const params = new URLSearchParams(window.location.search);
-    const startParam = params.get('tgWebAppStartParam');
-    
-    if (startParam && startParam.startsWith('key_')) {
-        // Формат: key_КЛЮЧ_ДАТА
-        const parts = startParam.split('_');
-        if (parts.length >= 3) {
-            const key = parts[1];
-            const expires = parts[2];
-            saveKeyFromBot(key, expires);
-        }
-    }
+    document.getElementById('statsTotalUsers').textContent = '1 234';
+    document.getElementById('statsActiveToday').textContent = '345';
+    document.getElementById('statsNewWeek').textContent = '123';
+    document.getElementById('statsDemoKeys').textContent = '456';
+    document.getElementById('statsTotalSales').textContent = '789';
+    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
+    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
+    document.getElementById('statsAvgCheck').textContent = '237 ₽';
+    document.getElementById('statsClickToDemo').textContent = '24%';
+    document.getElementById('statsDemoToPaid').textContent = '12%';
+    document.getElementById('statsChurn').textContent = '5.6%';
+    document.getElementById('statsLTV').textContent = '1 450 ₽';
+}
+
+function refreshStats() {
+    loadStats();
+    showToast('Статистика обновлена');
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', () => {
-    loadProfile();
-    loadStatus();
-    checkStartParams();
+    // Получаем параметры из URL
+    const params = getUrlParams();
     
-    // По умолчанию показываем тарифы
-    document.querySelector('[data-tab="plans"]').classList.add('active');
-    document.getElementById('tab-plans').classList.add('active');
+    // Загружаем профиль и ключи
+    loadProfile();
+    
+    // Если есть ключ в URL, сохраняем его
+    if (params.key && params.expires) {
+        const newKey = {
+            id: Date.now(),
+            key: params.key,
+            type: 'DEMO',
+            status: 'inactive',
+            expires: params.expires,
+            devices: 0
+        };
+        
+        loadUserKeys();
+        if (!userKeys.some(k => k.key === params.key)) {
+            userKeys.push(newKey);
+            saveUserKeys();
+            showToast('Ключ получен от бота!');
+            
+            // Переключаемся на вкладку статуса
+            document.querySelector('[data-tab="status"]').click();
+        }
+    }
+    
+    // Загружаем статус
+    loadStatus();
+    
+    // По умолчанию показываем тарифы (если нет ключа в URL)
+    if (!params.key) {
+        document.querySelector('[data-tab="plans"]').classList.add('active');
+        document.getElementById('tab-plans').classList.add('active');
+    }
     
     // Закрытие модалки
     const modal = document.getElementById('paymentModal');
@@ -491,6 +462,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-// Экспортируем функцию для бота (будет вызвана извне если нужно)
-window.saveKeyFromBot = saveKeyFromBot;
