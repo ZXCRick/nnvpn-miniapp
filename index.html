@@ -24,12 +24,12 @@
         <!-- Приветственный баннер -->
         <div class="welcome-banner">
             <div class="welcome-text">
-                <h1>Добро пожаловать, <span id="userName">друг</span>!</h1>
+                <h1>Добро пожаловать, <span id="userName">Пользователь</span></h1>
                 <p>Мы заботимся о вашей анонимности</p>
             </div>
         </div>
 
-        <!-- Профиль (исправлено, без дублей ID) -->
+        <!-- Профиль -->
         <div class="profile-section">
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">
@@ -37,63 +37,48 @@
                     <span id="avatarPlaceholder"></span>
                 </div>
                 <div class="profile-info">
-                    <h2 id="profileName">Загрузка...</h2>
-                    <div class="profile-meta">
+                    <div class="profile-name-wrapper">
+                        <h2 id="profileName">Загрузка...</h2>
                         <span class="badge" id="profileTier">FREE</span>
-                        <span class="badge outline" id="profileId">ID: ...</span>
                     </div>
+                    <div class="profile-id">ID: <span id="profileId">...</span></div>
                 </div>
             </div>
             
             <div class="profile-stats">
                 <div class="stat-item">
-                    <span class="stat-label">Username</span>
-                    <span class="stat-value" id="profileUsername">@...</span>
+                    <div class="stat-label">Username</div>
+                    <div class="stat-value" id="profileUsername">@...</div>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">На сервисе с:</span>
-                    <span class="stat-value" id="profileJoinDate">...</span>
+                    <div class="stat-label">На сервисе с</div>
+                    <div class="stat-value" id="profileJoinDate">...</div>
                 </div>
             </div>
         </div>
 
-        <!-- Навигация (улучшенный дизайн) -->
+        <!-- Навигация -->
         <nav class="nav">
-            <button class="nav-btn" data-tab="plans">
-                <span class="nav-icon">💰</span>
-                <span>Тарифы</span>
-            </button>
-            <button class="nav-btn" data-tab="status">
-                <span class="nav-icon">📊</span>
-                <span>Статус</span>
-            </button>
-            <button class="nav-btn" data-tab="history">
-                <span class="nav-icon">📜</span>
-                <span>История</span>
-            </button>
-            <button class="nav-btn admin-only" data-tab="stats">
-                <span class="nav-icon">📈</span>
-                <span>Статистика</span>
-            </button>
-            <button class="nav-btn admin-only" data-tab="promo">
-                <span class="nav-icon">🎯</span>
-                <span>Промо</span>
-            </button>
+            <button class="nav-btn" data-tab="plans">Тарифы</button>
+            <button class="nav-btn" data-tab="status">Статус</button>
+            <button class="nav-btn" data-tab="history">История</button>
+            <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
+            <button class="nav-btn admin-only" data-tab="promo">Промо</button>
         </nav>
 
         <!-- Контент -->
         <div class="content">
             <!-- Тарифы -->
             <div class="tab" id="tab-plans">
-                <h2 class="section-title">Выберите тариф</h2>
+                <h2 class="section-title">Тарифы</h2>
                 <div class="plans">
                     <div class="plan-card" onclick="selectPlan('month')">
                         <h3>1 месяц</h3>
                         <div class="price">250 ₽</div>
                         <ul>
-                            <li>✓ 2 устройства</li>
-                            <li>✓ Все серверы</li>
-                            <li>✓ Split Tunneling</li>
+                            <li>2 устройства</li>
+                            <li>Все серверы</li>
+                            <li>Split Tunneling</li>
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
@@ -103,9 +88,9 @@
                         <h3>3 месяца</h3>
                         <div class="price">750 ₽</div>
                         <ul>
-                            <li>✓ 2 устройства</li>
-                            <li>✓ Все серверы</li>
-                            <li>✓ Split Tunneling</li>
+                            <li>2 устройства</li>
+                            <li>Все серверы</li>
+                            <li>Split Tunneling</li>
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
@@ -114,9 +99,9 @@
                         <h3>6 месяцев</h3>
                         <div class="price">1500 ₽</div>
                         <ul>
-                            <li>✓ 2 устройства</li>
-                            <li>✓ Все серверы</li>
-                            <li>✓ Split Tunneling</li>
+                            <li>2 устройства</li>
+                            <li>Все серверы</li>
+                            <li>Split Tunneling</li>
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
@@ -138,146 +123,144 @@
                     
                     <div class="status-info">
                         <div class="info-row">
-                            <span class="info-label">🔑 Ключ</span>
+                            <span class="info-label">Ключ</span>
                             <span class="info-value" id="statusKey">—</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">📅 Действует до</span>
+                            <span class="info-label">Действует до</span>
                             <span class="info-value" id="statusExpires">—</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">📱 Устройств</span>
+                            <span class="info-label">Устройств</span>
                             <span class="info-value" id="statusDevices">0/2</span>
                         </div>
                     </div>
                     
-                    <button class="btn" onclick="copyKey()">📋 Копировать ключ</button>
+                    <button class="btn" onclick="copyKey()">Копировать ключ</button>
                 </div>
-                <button class="btn btn-outline" onclick="refreshStatus()">Обновить статус</button>
+                <button class="btn btn-outline" onclick="refreshStatus()">Обновить</button>
             </div>
 
             <!-- История -->
             <div class="tab" id="tab-history">
-                <h2 class="section-title">История операций</h2>
+                <h2 class="section-title">История</h2>
                 <div class="history-list">
                     <div class="empty-state">
-                        <span class="empty-icon">📭</span>
-                        <p>Пока нет операций</p>
+                        <p>Нет операций</p>
                     </div>
                 </div>
             </div>
 
             <!-- Статистика (админ) -->
             <div class="tab" id="tab-stats">
-                <h2 class="section-title">Общая статистика</h2>
+                <h2 class="section-title">Статистика</h2>
                 
                 <div class="stats-section">
-                    <h3 class="stats-subtitle">👥 Пользователи</h3>
+                    <h3 class="stats-subtitle">Пользователи</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <span class="stat-label">Всего</span>
-                            <span class="stat-value" id="statsTotalUsers">1,234</span>
+                            <div class="stat-label">Всего</div>
+                            <div class="stat-value" id="statsTotalUsers">1 234</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">Активных сегодня</span>
-                            <span class="stat-value" id="statsActiveToday">345</span>
+                            <div class="stat-label">Активных сегодня</div>
+                            <div class="stat-value" id="statsActiveToday">345</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">Новых за неделю</span>
-                            <span class="stat-value" id="statsNewWeek">123</span>
+                            <div class="stat-label">Новых за неделю</div>
+                            <div class="stat-value" id="statsNewWeek">123</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">Демо-ключей</span>
-                            <span class="stat-value" id="statsDemoKeys">456</span>
+                            <div class="stat-label">Демо-ключей</div>
+                            <div class="stat-value" id="statsDemoKeys">456</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="stats-section">
-                    <h3 class="stats-subtitle">💰 Финансы</h3>
+                    <h3 class="stats-subtitle">Финансы</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <span class="stat-label">Всего продаж</span>
-                            <span class="stat-value" id="statsTotalSales">789</span>
+                            <div class="stat-label">Всего продаж</div>
+                            <div class="stat-value" id="statsTotalSales">789</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">На сумму</span>
-                            <span class="stat-value" id="statsTotalRevenue">187,250 ₽</span>
+                            <div class="stat-label">Выручка</div>
+                            <div class="stat-value" id="statsTotalRevenue">187 250 ₽</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">За месяц</span>
-                            <span class="stat-value" id="statsMonthRevenue">45,600 ₽</span>
+                            <div class="stat-label">За месяц</div>
+                            <div class="stat-value" id="statsMonthRevenue">45 600 ₽</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">Средний чек</span>
-                            <span class="stat-value" id="statsAvgCheck">237 ₽</span>
+                            <div class="stat-label">Средний чек</div>
+                            <div class="stat-value" id="statsAvgCheck">237 ₽</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="stats-section">
-                    <h3 class="stats-subtitle">📊 Конверсия</h3>
+                    <h3 class="stats-subtitle">Конверсия</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
-                            <span class="stat-label">Клики → Демо</span>
-                            <span class="stat-value" id="statsClickToDemo">24%</span>
+                            <div class="stat-label">Клики → Демо</div>
+                            <div class="stat-value" id="statsClickToDemo">24%</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">Демо → Покупка</span>
-                            <span class="stat-value" id="statsDemoToPaid">12%</span>
+                            <div class="stat-label">Демо → Покупка</div>
+                            <div class="stat-value" id="statsDemoToPaid">12%</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">Отказов</span>
-                            <span class="stat-value" id="statsChurn">5.6%</span>
+                            <div class="stat-label">Отказов</div>
+                            <div class="stat-value" id="statsChurn">5.6%</div>
                         </div>
                         <div class="stat-card">
-                            <span class="stat-label">LTV</span>
-                            <span class="stat-value" id="statsLTV">1,450 ₽</span>
+                            <div class="stat-label">LTV</div>
+                            <div class="stat-value" id="statsLTV">1 450 ₽</div>
                         </div>
                     </div>
                 </div>
                 
-                <button class="btn" onclick="refreshStats()">🔄 Обновить статистику</button>
+                <button class="btn" onclick="refreshStats()">Обновить</button>
             </div>
 
-            <!-- ПРОМО (для пиарщика) - ИСПРАВЛЕНО -->
+            <!-- ПРОМО (для пиарщика) -->
             <div class="tab" id="tab-promo">
                 <h2 class="section-title">Промо-кампании</h2>
                 
                 <div class="promo-summary">
                     <div class="summary-card">
-                        <span class="summary-label">Всего кликов</span>
-                        <span class="summary-value" id="promoTotalClicks">0</span>
+                        <div class="summary-label">Всего кликов</div>
+                        <div class="summary-value" id="promoTotalClicks">0</div>
                     </div>
                     <div class="summary-card">
-                        <span class="summary-label">Переходов в демо</span>
-                        <span class="summary-value" id="promoTotalDemos">0</span>
+                        <div class="summary-label">Переходов в демо</div>
+                        <div class="summary-value" id="promoTotalDemos">0</div>
                     </div>
                     <div class="summary-card">
-                        <span class="summary-label">Конверсия</span>
-                        <span class="summary-value" id="promoTotalConv">0%</span>
+                        <div class="summary-label">Конверсия</div>
+                        <div class="summary-value" id="promoTotalConv">0%</div>
                     </div>
                 </div>
                 
                 <div class="promo-create">
-                    <h3 class="promo-subtitle">➕ Новая ссылка</h3>
+                    <h3 class="promo-subtitle">Новая ссылка</h3>
                     <div class="create-form">
-                        <input type="text" id="promoNameInput" placeholder="Например: telegram_channel" class="promo-input">
+                        <input type="text" id="promoNameInput" placeholder="Название кампании" class="promo-input">
                         <button class="btn" id="createPromoBtn" onclick="createPromoLink()">Создать</button>
                     </div>
                 </div>
                 
                 <div class="promo-links">
-                    <h3 class="promo-subtitle">📋 Мои ссылки</h3>
+                    <h3 class="promo-subtitle">Мои ссылки</h3>
                     <div id="promoLinksList">
                         <div class="empty-state">
-                            <span class="empty-icon">🔗</span>
-                            <p>У вас пока нет созданных ссылок</p>
+                            <p>Нет созданных ссылок</p>
                         </div>
                     </div>
                 </div>
                 
-                <button class="btn btn-outline" onclick="refreshPromoStats()">🔄 Обновить статистику</button>
+                <button class="btn btn-outline" onclick="refreshPromoStats()">Обновить статистику</button>
             </div>
         </div>
     </div>
@@ -289,9 +272,9 @@
             <p id="modalDescription"></p>
             
             <div class="payment-methods">
-                <button class="payment-btn" onclick="payWith('card')">💳 Карта РФ</button>
-                <button class="payment-btn" onclick="payWith('sbp')">🏦 СБП</button>
-                <button class="payment-btn" onclick="payWith('yoomoney')">📱 ЮMoney</button>
+                <button class="payment-btn" onclick="payWith('card')">Карта РФ</button>
+                <button class="payment-btn" onclick="payWith('sbp')">СБП</button>
+                <button class="payment-btn" onclick="payWith('yoomoney')">ЮMoney</button>
             </div>
             
             <button class="btn btn-danger" onclick="closeModal()">Отмена</button>
