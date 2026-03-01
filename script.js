@@ -12,14 +12,14 @@ function loadProfile() {
     if (!user) {
         document.getElementById('profileName').textContent = 'Гость';
         document.getElementById('profileUsername').textContent = '—';
-        document.getElementById('profileId').textContent = 'ID: —';
+        document.getElementById('profileId').textContent = '—';
         return;
     }
 
     const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
     document.getElementById('profileName').textContent = fullName;
-    document.getElementById('userName').textContent = user.first_name;
-    document.getElementById('profileId').textContent = `ID: ${user.id}`;
+    document.getElementById('userName').textContent = user.first_name || 'Пользователь';
+    document.getElementById('profileId').textContent = user.id;
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
     // Дата регистрации
@@ -164,18 +164,18 @@ function payWith(method) {
 function loadStats() {
     if (!isAdmin) return;
     
-    document.getElementById('statsTotalUsers').textContent = '1,234';
+    document.getElementById('statsTotalUsers').textContent = '1 234';
     document.getElementById('statsActiveToday').textContent = '345';
     document.getElementById('statsNewWeek').textContent = '123';
     document.getElementById('statsDemoKeys').textContent = '456';
     document.getElementById('statsTotalSales').textContent = '789';
-    document.getElementById('statsTotalRevenue').textContent = '187,250 ₽';
-    document.getElementById('statsMonthRevenue').textContent = '45,600 ₽';
+    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
+    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
     document.getElementById('statsAvgCheck').textContent = '237 ₽';
     document.getElementById('statsClickToDemo').textContent = '24%';
     document.getElementById('statsDemoToPaid').textContent = '12%';
     document.getElementById('statsChurn').textContent = '5.6%';
-    document.getElementById('statsLTV').textContent = '1,450 ₽';
+    document.getElementById('statsLTV').textContent = '1 450 ₽';
 }
 
 function refreshStats() {
@@ -212,144 +212,4 @@ function loadPromoLinks() {
                 demos: 89,
                 sales: 12,
                 revenue: 3000
-            }
-        ];
-        localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
-    }
-    
-    renderPromoLinks();
-    updatePromoSummary();
-}
-
-function renderPromoLinks() {
-    const container = document.getElementById('promoLinksList');
-    
-    if (promoLinks.length === 0) {
-        container.innerHTML = '<div class="empty-state"><span class="empty-icon">🔗</span><p>У вас пока нет созданных ссылок</p></div>';
-        return;
-    }
-    
-    let html = '';
-    promoLinks.forEach(link => {
-        const convRate = link.clicks > 0 ? Math.round((link.demos / link.clicks) * 100) : 0;
-        
-        html += `
-            <div class="promo-link-item" data-id="${link.id}">
-                <div class="promo-link-header">
-                    <span class="promo-link-name">${link.name}</span>
-                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')" style="width:30px;height:30px;">📋</button>
-                </div>
-                <div class="promo-link-url">${link.url}</div>
-                <div class="promo-link-stats">
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Клики</span>
-                        <span class="promo-stat-value">${link.clicks}</span>
-                    </div>
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Демо</span>
-                        <span class="promo-stat-value">${link.demos}</span>
-                    </div>
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Конв.</span>
-                        <span class="promo-stat-value">${convRate}%</span>
-                    </div>
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Продажи</span>
-                        <span class="promo-stat-value">${link.sales || 0}</span>
-                    </div>
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Выручка</span>
-                        <span class="promo-stat-value">${link.revenue || 0}₽</span>
-                    </div>
-                </div>
-                <div class="promo-link-actions">
-                    <button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">📋 Копировать</button>
-                    <button class="btn btn-outline" onclick="deletePromoLink('${link.id}')">🗑️ Удалить</button>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-function updatePromoSummary() {
-    const totalClicks = promoLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
-    const totalDemos = promoLinks.reduce((sum, link) => sum + (link.demos || 0), 0);
-    const convRate = totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) : 0;
-    
-    document.getElementById('promoTotalClicks').textContent = totalClicks;
-    document.getElementById('promoTotalDemos').textContent = totalDemos;
-    document.getElementById('promoTotalConv').textContent = convRate + '%';
-}
-
-function createPromoLink() {
-    const nameInput = document.getElementById('promoNameInput');
-    const name = nameInput.value.trim();
-    
-    if (!name) {
-        showToast('Введите название ссылки');
-        return;
-    }
-    
-    // Проверяем уникальность
-    if (promoLinks.some(link => link.name === name)) {
-        showToast('Такое название уже существует');
-        return;
-    }
-    
-    const newLink = {
-        id: Date.now().toString(),
-        name: name,
-        url: `https://t.me/vpnNoNamebot?start=promo_${name}`,
-        clicks: 0,
-        demos: 0,
-        sales: 0,
-        revenue: 0
-    };
-    
-    promoLinks.push(newLink);
-    localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
-    
-    nameInput.value = '';
-    renderPromoLinks();
-    updatePromoSummary();
-    showToast('Ссылка создана');
-}
-
-function copyPromoUrl(url) {
-    navigator.clipboard.writeText(url);
-    showToast('Ссылка скопирована');
-}
-
-function deletePromoLink(id) {
-    if (confirm('Удалить эту ссылку?')) {
-        promoLinks = promoLinks.filter(link => link.id !== id);
-        localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
-        renderPromoLinks();
-        updatePromoSummary();
-        showToast('Ссылка удалена');
-    }
-}
-
-function refreshPromoStats() {
-    // Здесь потом будет запрос к бэкенду
-    showToast('Статистика обновлена');
-}
-
-// ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', () => {
-    loadProfile();
-    loadStatus();
-    
-    // По умолчанию показываем тарифы
-    document.querySelector('[data-tab="plans"]').classList.add('active');
-    document.getElementById('tab-plans').classList.add('active');
-    
-    // Закрытие модалки
-    document.getElementById('paymentModal').addEventListener('click', function(e) {
-        if (e.target === this) closeModal();
-    });
-    
-    // Проверяем создание промо-ссылок (кнопка уже есть в html)
-});
+           
