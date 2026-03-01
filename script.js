@@ -2,9 +2,10 @@ let tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
 
-// Данные пользователя из Telegram
+// Данные пользователя
 const user = tg.initDataUnsafe?.user;
-const isAdmin = [913301430, 7747044405, 706826056].includes(user?.id);
+const ADMIN_IDS = [913301430, 7747044405, 706826056];
+const isAdmin = user && ADMIN_IDS.includes(user.id);
 
 // ========== ПРОФИЛЬ ==========
 function loadProfile() {
@@ -12,21 +13,18 @@ function loadProfile() {
         document.getElementById('profileName').textContent = 'Гость';
         document.getElementById('profileUsername').textContent = '—';
         document.getElementById('profileId').textContent = 'ID: —';
+        document.getElementById('profileIdShort').textContent = '—';
         return;
     }
 
-    // Имя
     const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
     document.getElementById('profileName').textContent = fullName;
     document.getElementById('userName').textContent = user.first_name;
-    
-    // ID
     document.getElementById('profileId').textContent = `ID: ${user.id}`;
-    
-    // Username
+    document.getElementById('profileIdShort').textContent = user.id;
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
-    // 📅 Дата первого запуска
+    // Дата регистрации
     let joinDate = localStorage.getItem(`join_date_${user.id}`);
     if (!joinDate) {
         const now = new Date();
@@ -57,104 +55,32 @@ function loadProfile() {
     document.getElementById('profileTier').textContent = tier;
 }
 
-// ========== РЕФЕРАЛКА ==========
-function loadReferralData() {
-    if (!user) return;
-    
-    // Реферальная ссылка
-    const referralLink = `https://t.me/NNVPN_bot?start=ref_${user.id}`;
-    document.getElementById('referralLink').value = referralLink;
-    
-    // Статистика рефералов
-    const referrals = JSON.parse(localStorage.getItem(`referrals_${user.id}`) || '[]');
-    document.getElementById('referralCount').textContent = referrals.length;
-    
-    // Заработано (50₽ за реферала)
-    const earned = referrals.length * 50;
-    document.getElementById('referralEarned').textContent = `${earned} ₽`;
-    
-    // История переходов
-    const historyEl = document.getElementById('referralHistory');
-    const emptyEl = document.getElementById('referralHistoryEmpty');
-    
-    if (referrals.length > 0) {
-        emptyEl.style.display = 'none';
-        
-        let historyHTML = '<div class="referral-history-list">';
-        referrals.forEach(ref => {
-            historyHTML += `
-                <div class="referral-item">
-                    <span>${ref.name || 'Пользователь'}</span>
-                    <span class="badge outline">${ref.date || 'недавно'}</span>
-                </div>
-            `;
-        });
-        historyHTML += '</div>';
-        
-        // Проверяем есть ли уже список
-        const existingList = document.querySelector('.referral-history-list');
-        if (existingList) {
-            existingList.remove();
-        }
-        
-        const listDiv = document.createElement('div');
-        listDiv.className = 'referral-history-list';
-        listDiv.innerHTML = historyHTML;
-        historyEl.appendChild(listDiv);
-    } else {
-        emptyEl.style.display = 'block';
-        const existingList = document.querySelector('.referral-history-list');
-        if (existingList) existingList.remove();
-    }
-}
-
-function copyReferralLink() {
-    const link = document.getElementById('referralLink');
-    link.select();
-    navigator.clipboard.writeText(link.value);
-    showToast('Ссылка скопирована');
-}
-
-function refreshReferrals() {
-    loadReferralData();
-    showToast('Статистика обновлена');
-}
-
-// ========== НАВИГАЦИЯ (ИСПРАВЛЕНО) ==========
+// ========== НАВИГАЦИЯ ==========
 document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-        // Убираем active у всех кнопок
+    btn.addEventListener('click', function() {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        // Добавляем active текущей
         this.classList.add('active');
         
-        // Убираем active у всех табов
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        
-        // Показываем нужный таб
         const tabId = `tab-${this.dataset.tab}`;
         const activeTab = document.getElementById(tabId);
         if (activeTab) {
             activeTab.classList.add('active');
             
-            // Загружаем данные при необходимости
-            if (this.dataset.tab === 'referral') {
-                loadReferralData();
-            } else if (this.dataset.tab === 'status') {
-                loadStatus();
-            } else if (this.dataset.tab === 'stats' && isAdmin) {
-                loadStats();
-            }
+            // Загружаем данные
+            if (this.dataset.tab === 'status') loadStatus();
+            else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
+            else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
         }
     });
 });
 
-// Показываем админ-кнопку
+// Показываем админ-кнопки
 if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== СТАТУС ПОДПИСКИ ==========
+// ========== СТАТУС ==========
 function loadStatus() {
     if (!user) return;
     
@@ -168,8 +94,6 @@ function loadStatus() {
         
         if (expires) {
             document.getElementById('statusExpires').textContent = expires;
-            
-            // Считаем дни
             const daysLeft = Math.ceil((new Date(expires) - new Date()) / (1000 * 60 * 60 * 24));
             const progress = Math.min(100, Math.max(0, (daysLeft / 7) * 100));
             document.getElementById('statusProgress').style.width = progress + '%';
@@ -231,7 +155,6 @@ function payWith(method) {
     tg.MainButton.setText('Обработка...');
     tg.MainButton.show();
     
-    // Имитация оплаты
     setTimeout(() => {
         showToast('Демо-режим: оплата не работает');
         tg.MainButton.hide();
@@ -243,15 +166,176 @@ function payWith(method) {
 function loadStats() {
     if (!isAdmin) return;
     
-    // Заглушка
-    document.getElementById('statsUsers').textContent = '125';
-    document.getElementById('statsActive').textContent = '43';
-    document.getElementById('statsSales').textContent = '12';
-    document.getElementById('statsDemo').textContent = '67';
+    document.getElementById('statsTotalUsers').textContent = '1,234';
+    document.getElementById('statsActiveToday').textContent = '345';
+    document.getElementById('statsNewWeek').textContent = '123';
+    document.getElementById('statsDemoKeys').textContent = '456';
+    document.getElementById('statsTotalSales').textContent = '789';
+    document.getElementById('statsTotalRevenue').textContent = '187,250 ₽';
+    document.getElementById('statsMonthRevenue').textContent = '45,600 ₽';
+    document.getElementById('statsAvgCheck').textContent = '237 ₽';
+    document.getElementById('statsClickToDemo').textContent = '24%';
+    document.getElementById('statsDemoToPaid').textContent = '12%';
+    document.getElementById('statsChurn').textContent = '5.6%';
+    document.getElementById('statsLTV').textContent = '1,450 ₽';
 }
 
 function refreshStats() {
     loadStats();
+    showToast('Статистика обновлена');
+}
+
+// ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
+let promoLinks = [];
+
+function loadPromoLinks() {
+    if (!isAdmin || !user) return;
+    
+    const saved = localStorage.getItem(`promo_links_${user.id}`);
+    if (saved) {
+        promoLinks = JSON.parse(saved);
+    } else {
+        // Тестовые данные
+        promoLinks = [
+            {
+                id: '1',
+                name: 'telegram_channel',
+                url: `https://t.me/vpnNoNamebot?start=promo_telegram_channel`,
+                clicks: 245,
+                demos: 38,
+                sales: 4,
+                revenue: 1000
+            },
+            {
+                id: '2',
+                name: 'youtube_review',
+                url: `https://t.me/vpnNoNamebot?start=promo_youtube_review`,
+                clicks: 567,
+                demos: 89,
+                sales: 12,
+                revenue: 3000
+            }
+        ];
+        localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
+    }
+    
+    renderPromoLinks();
+    updatePromoSummary();
+}
+
+function renderPromoLinks() {
+    const container = document.getElementById('promoLinksList');
+    
+    if (promoLinks.length === 0) {
+        container.innerHTML = '<div class="promo-empty">У вас пока нет созданных ссылок</div>';
+        return;
+    }
+    
+    let html = '';
+    promoLinks.forEach(link => {
+        const convRate = link.clicks > 0 ? Math.round((link.demos / link.clicks) * 100) : 0;
+        
+        html += `
+            <div class="promo-link-item" data-id="${link.id}">
+                <div class="promo-link-header">
+                    <span class="promo-link-name">${link.name}</span>
+                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')" style="width:30px;height:30px;">📋</button>
+                </div>
+                <div class="promo-link-url">${link.url}</div>
+                <div class="promo-link-stats">
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Клики</span>
+                        <span class="promo-stat-value">${link.clicks}</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Демо</span>
+                        <span class="promo-stat-value">${link.demos}</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Конв.</span>
+                        <span class="promo-stat-value">${convRate}%</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Продажи</span>
+                        <span class="promo-stat-value">${link.sales || 0}</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Выручка</span>
+                        <span class="promo-stat-value">${link.revenue || 0}₽</span>
+                    </div>
+                </div>
+                <div class="promo-link-actions">
+                    <button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">📋 Копировать</button>
+                    <button class="btn btn-outline" onclick="deletePromoLink('${link.id}')">🗑️ Удалить</button>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+function updatePromoSummary() {
+    const totalClicks = promoLinks.reduce((sum, link) => sum + link.clicks, 0);
+    const totalDemos = promoLinks.reduce((sum, link) => sum + link.demos, 0);
+    const convRate = totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) : 0;
+    
+    document.getElementById('promoTotalClicks').textContent = totalClicks;
+    document.getElementById('promoTotalDemos').textContent = totalDemos;
+    document.getElementById('promoTotalConv').textContent = convRate + '%';
+}
+
+function createPromoLink() {
+    const nameInput = document.getElementById('promoNameInput');
+    const name = nameInput.value.trim();
+    
+    if (!name) {
+        showToast('Введите название ссылки');
+        return;
+    }
+    
+    // Проверяем уникальность
+    if (promoLinks.some(link => link.name === name)) {
+        showToast('Такое название уже существует');
+        return;
+    }
+    
+    const newLink = {
+        id: Date.now().toString(),
+        name: name,
+        url: `https://t.me/vpnNoNamebot?start=promo_${name}`,
+        clicks: 0,
+        demos: 0,
+        sales: 0,
+        revenue: 0
+    };
+    
+    promoLinks.push(newLink);
+    localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
+    
+    nameInput.value = '';
+    renderPromoLinks();
+    updatePromoSummary();
+    showToast('Ссылка создана');
+}
+
+function copyPromoUrl(url) {
+    navigator.clipboard.writeText(url);
+    showToast('Ссылка скопирована');
+}
+
+function deletePromoLink(id) {
+    if (confirm('Удалить эту ссылку?')) {
+        promoLinks = promoLinks.filter(link => link.id !== id);
+        localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
+        renderPromoLinks();
+        updatePromoSummary();
+        showToast('Ссылка удалена');
+    }
+}
+
+function refreshPromoStats() {
+    // Здесь потом будет запрос к бэкенду
     showToast('Статистика обновлена');
 }
 
@@ -264,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('[data-tab="plans"]').classList.add('active');
     document.getElementById('tab-plans').classList.add('active');
     
-    // Закрытие модалки по клику вне
+    // Закрытие модалки
     document.getElementById('paymentModal').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
