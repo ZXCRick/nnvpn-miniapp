@@ -7,6 +7,9 @@ const user = tg.initDataUnsafe?.user;
 const ADMIN_IDS = [913301430, 7747044405, 706826056];
 const isAdmin = user && ADMIN_IDS.includes(user.id);
 
+// Хранилище ключей
+let userKeys = [];
+
 // ========== ПРОФИЛЬ ==========
 function loadProfile() {
     if (!user) {
@@ -48,9 +51,21 @@ function loadProfile() {
         avatarPlaceholder.textContent = initials || '?';
     }
     
-    // Тариф
-    const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
-    document.getElementById('profileTier').textContent = tier;
+    // Загружаем ключи пользователя
+    loadUserKeys();
+}
+
+function loadUserKeys() {
+    const saved = localStorage.getItem(`keys_${user.id}`);
+    if (saved) {
+        userKeys = JSON.parse(saved);
+    } else {
+        userKeys = [];
+    }
+}
+
+function saveUserKeys() {
+    localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
 }
 
 // ========== НАВИГАЦИЯ ==========
@@ -78,29 +93,48 @@ if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== СТАТУС ==========
+// ========== СТАТУС (с поддержкой активации) ==========
 function loadStatus() {
     if (!user) return;
     
-    const demoKey = localStorage.getItem(`demo_key_${user.id}`);
-    const expires = localStorage.getItem(`expires_${user.id}`);
+    loadUserKeys();
     
-    if (demoKey) {
-        document.getElementById('statusKey').textContent = demoKey;
-        document.getElementById('statusTier').textContent = 'DEMO';
-        document.getElementById('statusDevices').textContent = '1/2';
+    const activeKey = userKeys.find(k => k.status === 'active');
+    const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
+    
+    if (activeKey) {
+        // Есть активный ключ
+        document.getElementById('statusKey').textContent = activeKey.key;
+        document.getElementById('statusTier').textContent = activeKey.type;
+        document.getElementById('statusDevices').textContent = `${activeKey.devices || 0}/2`;
+        document.getElementById('statusExpires').textContent = activeKey.expires || '—';
+        document.getElementById('keyStatus').textContent = 'Активен';
+        document.getElementById('activateKeyBtn').style.display = 'none';
         
-        if (expires) {
-            document.getElementById('statusExpires').textContent = expires;
-            const daysLeft = Math.ceil((new Date(expires) - new Date()) / (1000 * 60 * 60 * 24));
-            const progress = Math.min(100, Math.max(0, (daysLeft / 7) * 100));
+        // Прогресс
+        if (activeKey.expires && activeKey.expires !== '—') {
+            const daysLeft = Math.ceil((new Date(activeKey.expires) - new Date()) / (1000 * 60 * 60 * 24));
+            const progress = Math.min(100, Math.max(0, (daysLeft / 30) * 100));
             document.getElementById('statusProgress').style.width = progress + '%';
         }
+    } else if (inactiveKeys.length > 0) {
+        // Есть неактивный ключ
+        const key = inactiveKeys[0];
+        document.getElementById('statusKey').textContent = key.key;
+        document.getElementById('statusTier').textContent = key.type;
+        document.getElementById('statusDevices').textContent = '0/2';
+        document.getElementById('statusExpires').textContent = key.expires || '—';
+        document.getElementById('keyStatus').textContent = 'Неактивен';
+        document.getElementById('activateKeyBtn').style.display = 'block';
+        document.getElementById('statusProgress').style.width = '0%';
     } else {
+        // Нет ключей
         document.getElementById('statusKey').textContent = '—';
         document.getElementById('statusTier').textContent = 'FREE';
         document.getElementById('statusDevices').textContent = '0/2';
         document.getElementById('statusExpires').textContent = '—';
+        document.getElementById('keyStatus').textContent = '—';
+        document.getElementById('activateKeyBtn').style.display = 'none';
         document.getElementById('statusProgress').style.width = '0%';
     }
 }
@@ -118,6 +152,20 @@ function copyKey() {
     }
 }
 
+function activateKey() {
+    loadUserKeys();
+    const inactiveKey = userKeys.find(k => k.status === 'inactive');
+    
+    if (inactiveKey) {
+        inactiveKey.status = 'active';
+        inactiveKey.devices = 1;
+        inactiveKey.activatedAt = new Date().toISOString();
+        saveUserKeys();
+        loadStatus();
+        showToast('Ключ активирован');
+    }
+}
+
 // ========== УВЕДОМЛЕНИЯ ==========
 function showToast(text, duration = 3000) {
     const toast = document.getElementById('toast');
@@ -128,9 +176,9 @@ function showToast(text, duration = 3000) {
 
 // ========== ТАРИФЫ ==========
 const plans = {
-    month: { name: '1 месяц', price: 250 },
-    quarter: { name: '3 месяца', price: 750 },
-    halfyear: { name: '6 месяцев', price: 1500 }
+    month: { name: '1 месяц', price: 250, type: 'PREMIUM' },
+    quarter: { name: '3 месяца', price: 750, type: 'PREMIUM' },
+    halfyear: { name: '6 месяцев', price: 1500, type: 'PREMIUM' }
 };
 
 let selectedPlan = null;
@@ -153,11 +201,43 @@ function payWith(method) {
     tg.MainButton.setText('Обработка...');
     tg.MainButton.show();
     
+    // Генерируем ключ
     setTimeout(() => {
-        showToast('Демо-режим: оплата не работает');
+        const key = generateKey('VPN');
+        const expires = new Date();
+        expires.setMonth(expires.getMonth() + (selectedPlan === 'month' ? 1 : selectedPlan === 'quarter' ? 3 : 6));
+        
+        const newKey = {
+            id: Date.now(),
+            key: key,
+            type: plans[selectedPlan].type,
+            status: 'inactive',
+            expires: expires.toLocaleDateString('ru-RU'),
+            devices: 0
+        };
+        
+        userKeys.push(newKey);
+        saveUserKeys();
+        
+        showToast('Ключ создан! Активируйте его в статусе');
         tg.MainButton.hide();
         closeModal();
+        
+        // Если мы на вкладке статуса, обновляем
+        if (document.querySelector('[data-tab="status"]').classList.contains('active')) {
+            loadStatus();
+        }
     }, 1000);
+}
+
+function generateKey(prefix) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = prefix + '-';
+    for (let i = 0; i < 12; i++) {
+        if (i > 0 && i % 4 === 0) result += '-';
+        result += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return result;
 }
 
 // ========== СТАТИСТИКА (АДМИН) ==========
@@ -193,27 +273,7 @@ function loadPromoLinks() {
     if (saved) {
         promoLinks = JSON.parse(saved);
     } else {
-        // Тестовые данные
-        promoLinks = [
-            {
-                id: '1',
-                name: 'telegram_channel',
-                url: `https://t.me/vpnNoNamebot?start=promo_telegram_channel`,
-                clicks: 245,
-                demos: 38,
-                sales: 4,
-                revenue: 1000
-            },
-            {
-                id: '2',
-                name: 'youtube_review',
-                url: `https://t.me/vpnNoNamebot?start=promo_youtube_review`,
-                clicks: 567,
-                demos: 89,
-                sales: 12,
-                revenue: 3000
-            }
-        ];
+        promoLinks = [];
         localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
     }
     
@@ -243,11 +303,11 @@ function renderPromoLinks() {
                 <div class="promo-link-stats">
                     <div class="promo-stat">
                         <span class="promo-stat-label">Клики</span>
-                        <span class="promo-stat-value">${link.clicks}</span>
+                        <span class="promo-stat-value">${link.clicks || 0}</span>
                     </div>
                     <div class="promo-stat">
                         <span class="promo-stat-label">Демо</span>
-                        <span class="promo-stat-value">${link.demos}</span>
+                        <span class="promo-stat-value">${link.demos || 0}</span>
                     </div>
                     <div class="promo-stat">
                         <span class="promo-stat-label">Конв</span>
