@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NN VPN — безопасность превыше всего</title>
+    <title>NN VPN</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -15,22 +15,22 @@
                 <span class="logo-icon">⚡</span>
                 <span class="logo-text">NN VPN</span>
             </div>
-            <div class="header-status" id="headerStatus">
+            <div class="header-status">
                 <span class="status-dot"></span>
                 <span>Защищено</span>
             </div>
         </div>
 
         <!-- Приветственный баннер -->
-        <div class="welcome-banner" id="welcomeBanner">
+        <div class="welcome-banner">
             <div class="welcome-text">
                 <h1>Добро пожаловать, <span id="userName">друг</span>!</h1>
                 <p>Мы заботимся о вашей анонимности</p>
             </div>
         </div>
 
-        <!-- Профиль -->
-        <div class="profile-section" id="profileSection">
+        <!-- Профиль (исправлено, без дублей ID) -->
+        <div class="profile-section">
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">
                     <img id="avatarImage" src="" alt="" style="display: none;">
@@ -54,27 +54,38 @@
                     <span class="stat-label">На сервисе с:</span>
                     <span class="stat-value" id="profileJoinDate">...</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">ID</span>
-                    <span class="stat-value" id="profileIdShort">...</span>
-                </div>
             </div>
         </div>
 
-        <!-- Навигация -->
+        <!-- Навигация (улучшенный дизайн) -->
         <nav class="nav">
-            <button class="nav-btn" data-tab="plans">Тарифы</button>
-            <button class="nav-btn" data-tab="status">Статус</button>
-            <button class="nav-btn" data-tab="history">История</button>
-            <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
-            <button class="nav-btn admin-only" data-tab="promo">Промо</button>
+            <button class="nav-btn" data-tab="plans">
+                <span class="nav-icon">💰</span>
+                <span>Тарифы</span>
+            </button>
+            <button class="nav-btn" data-tab="status">
+                <span class="nav-icon">📊</span>
+                <span>Статус</span>
+            </button>
+            <button class="nav-btn" data-tab="history">
+                <span class="nav-icon">📜</span>
+                <span>История</span>
+            </button>
+            <button class="nav-btn admin-only" data-tab="stats">
+                <span class="nav-icon">📈</span>
+                <span>Статистика</span>
+            </button>
+            <button class="nav-btn admin-only" data-tab="promo">
+                <span class="nav-icon">🎯</span>
+                <span>Промо</span>
+            </button>
         </nav>
 
         <!-- Контент -->
         <div class="content">
             <!-- Тарифы -->
             <div class="tab" id="tab-plans">
-                <h2>Выберите тариф</h2>
+                <h2 class="section-title">Выберите тариф</h2>
                 <div class="plans">
                     <div class="plan-card" onclick="selectPlan('month')">
                         <h3>1 месяц</h3>
@@ -114,7 +125,7 @@
 
             <!-- Статус -->
             <div class="tab" id="tab-status">
-                <h2>Статус подписки</h2>
+                <h2 class="section-title">Статус подписки</h2>
                 <div class="status-card">
                     <div class="status-header">
                         <span class="status-label">Тариф</span>
@@ -126,9 +137,18 @@
                     </div>
                     
                     <div class="status-info">
-                        <p>🔑 Ключ: <span id="statusKey">—</span></p>
-                        <p>📅 Действует до: <span id="statusExpires">—</span></p>
-                        <p>📱 Устройств: <span id="statusDevices">0/2</span></p>
+                        <div class="info-row">
+                            <span class="info-label">🔑 Ключ</span>
+                            <span class="info-value" id="statusKey">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">📅 Действует до</span>
+                            <span class="info-value" id="statusExpires">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">📱 Устройств</span>
+                            <span class="info-value" id="statusDevices">0/2</span>
+                        </div>
                     </div>
                     
                     <button class="btn" onclick="copyKey()">📋 Копировать ключ</button>
@@ -138,20 +158,21 @@
 
             <!-- История -->
             <div class="tab" id="tab-history">
-                <h2>История операций</h2>
-                <div class="history-list" id="historyList">
-                    <div class="history-empty">
+                <h2 class="section-title">История операций</h2>
+                <div class="history-list">
+                    <div class="empty-state">
+                        <span class="empty-icon">📭</span>
                         <p>Пока нет операций</p>
                     </div>
                 </div>
             </div>
 
-            <!-- СТАТИСТИКА (админ) -->
+            <!-- Статистика (админ) -->
             <div class="tab" id="tab-stats">
-                <h2>Общая статистика</h2>
+                <h2 class="section-title">Общая статистика</h2>
                 
                 <div class="stats-section">
-                    <h3>👥 Пользователи</h3>
+                    <h3 class="stats-subtitle">👥 Пользователи</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
                             <span class="stat-label">Всего</span>
@@ -173,7 +194,7 @@
                 </div>
                 
                 <div class="stats-section">
-                    <h3>💰 Финансы</h3>
+                    <h3 class="stats-subtitle">💰 Финансы</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
                             <span class="stat-label">Всего продаж</span>
@@ -195,7 +216,7 @@
                 </div>
                 
                 <div class="stats-section">
-                    <h3>📊 Конверсия</h3>
+                    <h3 class="stats-subtitle">📊 Конверсия</h3>
                     <div class="stats-grid">
                         <div class="stat-card">
                             <span class="stat-label">Клики → Демо</span>
@@ -219,9 +240,9 @@
                 <button class="btn" onclick="refreshStats()">🔄 Обновить статистику</button>
             </div>
 
-            <!-- ПРОМО (для пиарщика) -->
+            <!-- ПРОМО (для пиарщика) - ИСПРАВЛЕНО -->
             <div class="tab" id="tab-promo">
-                <h2>Промо-кампании</h2>
+                <h2 class="section-title">Промо-кампании</h2>
                 
                 <div class="promo-summary">
                     <div class="summary-card">
@@ -239,18 +260,20 @@
                 </div>
                 
                 <div class="promo-create">
-                    <h3>➕ Новая ссылка</h3>
+                    <h3 class="promo-subtitle">➕ Новая ссылка</h3>
                     <div class="create-form">
-                        <input type="text" id="promoNameInput" placeholder="Название (например: telegram_channel)" class="promo-input">
-                        <button class="btn" onclick="createPromoLink()">Создать</button>
+                        <input type="text" id="promoNameInput" placeholder="Например: telegram_channel" class="promo-input">
+                        <button class="btn" id="createPromoBtn" onclick="createPromoLink()">Создать</button>
                     </div>
                 </div>
                 
                 <div class="promo-links">
-                    <h3>📋 Мои ссылки</h3>
+                    <h3 class="promo-subtitle">📋 Мои ссылки</h3>
                     <div id="promoLinksList">
-                        <!-- Сюда будут добавляться созданные ссылки -->
-                        <div class="promo-empty">У вас пока нет созданных ссылок</div>
+                        <div class="empty-state">
+                            <span class="empty-icon">🔗</span>
+                            <p>У вас пока нет созданных ссылок</p>
+                        </div>
                     </div>
                 </div>
                 
