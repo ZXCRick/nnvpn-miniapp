@@ -29,7 +29,7 @@
             </div>
         </div>
 
-        <!-- Профиль (исправлено для длинных имён) -->
+        <!-- Профиль -->
         <div class="profile-section">
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">
@@ -108,7 +108,7 @@
                 </div>
             </div>
 
-            <!-- Статус (с поддержкой активации ключей) -->
+            <!-- Статус (без кнопки активации) -->
             <div class="tab" id="tab-status">
                 <h2 class="section-title">Статус подписки</h2>
                 <div class="status-card">
@@ -127,7 +127,7 @@
                             <span class="info-value" id="statusKey">—</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Статус ключа</span>
+                            <span class="info-label">Статус</span>
                             <span class="info-value" id="keyStatus">—</span>
                         </div>
                         <div class="info-row">
@@ -140,10 +140,7 @@
                         </div>
                     </div>
                     
-                    <div class="key-actions">
-                        <button class="btn" onclick="copyKey()">Копировать ключ</button>
-                        <button class="btn btn-outline" onclick="activateKey()" id="activateKeyBtn" style="display:none;">Активировать ключ</button>
-                    </div>
+                    <button class="btn" onclick="copyKey()">Копировать ключ</button>
                 </div>
                 <button class="btn btn-outline" onclick="refreshStatus()">Обновить</button>
             </div>
