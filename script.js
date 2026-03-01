@@ -82,13 +82,11 @@ function loadUserKeys() {
     } else {
         userKeys = [];
     }
-    console.log('Загружены ключи:', userKeys); // Для отладки
 }
 
 function saveUserKeys() {
     if (!user) return;
     localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
-    console.log('Ключи сохранены:', userKeys); // Для отладки
 }
 
 // ========== НАВИГАЦИЯ ==========
@@ -105,7 +103,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
             
             // Загружаем данные
             if (this.dataset.tab === 'status') {
-                console.log('Загрузка статуса...');
                 loadStatus();
             }
             else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
@@ -119,29 +116,22 @@ if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== СТАТУС ==========
+// ========== СТАТУС (БЕЗ КНОПКИ АКТИВАЦИИ) ==========
 function loadStatus() {
-    if (!user) {
-        console.log('Нет пользователя');
-        return;
-    }
+    if (!user) return;
     
     loadUserKeys();
-    console.log('loadStatus: userKeys =', userKeys);
     
     const activeKey = userKeys.find(k => k.status === 'active');
     const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
     
-    console.log('activeKey:', activeKey);
-    console.log('inactiveKeys:', inactiveKeys);
-    
     if (activeKey) {
+        // Активный ключ (уже активирован в приложении)
         document.getElementById('statusKey').textContent = activeKey.key;
         document.getElementById('statusTier').textContent = activeKey.type;
-        document.getElementById('statusDevices').textContent = `${activeKey.devices || 0}/2`;
+        document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
         document.getElementById('statusExpires').textContent = activeKey.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Активен';
-        document.getElementById('activateKeyBtn').style.display = 'none';
+        document.getElementById('keyStatus').textContent = '✅ Активен (используется в приложении)';
         
         if (activeKey.expires && activeKey.expires !== '—') {
             try {
@@ -153,26 +143,25 @@ function loadStatus() {
                 const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
                 document.getElementById('statusProgress').style.width = progress + '%';
             } catch (e) {
-                console.log('Ошибка расчета прогресса:', e);
                 document.getElementById('statusProgress').style.width = '0%';
             }
         }
     } else if (inactiveKeys.length > 0) {
+        // Неактивный ключ (ожидает активации в приложении)
         const key = inactiveKeys[0];
         document.getElementById('statusKey').textContent = key.key;
         document.getElementById('statusTier').textContent = key.type;
         document.getElementById('statusDevices').textContent = '0/2';
         document.getElementById('statusExpires').textContent = key.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Неактивен';
-        document.getElementById('activateKeyBtn').style.display = 'block';
+        document.getElementById('keyStatus').textContent = '⏳ Ожидает активации в приложении';
         document.getElementById('statusProgress').style.width = '0%';
     } else {
+        // Нет ключей
         document.getElementById('statusKey').textContent = '—';
         document.getElementById('statusTier').textContent = 'FREE';
         document.getElementById('statusDevices').textContent = '0/2';
         document.getElementById('statusExpires').textContent = '—';
         document.getElementById('keyStatus').textContent = '—';
-        document.getElementById('activateKeyBtn').style.display = 'none';
         document.getElementById('statusProgress').style.width = '0%';
     }
 }
@@ -187,20 +176,6 @@ function copyKey() {
     if (key && key !== '—') {
         navigator.clipboard.writeText(key);
         showToast('Ключ скопирован');
-    }
-}
-
-function activateKey() {
-    loadUserKeys();
-    const inactiveKey = userKeys.find(k => k.status === 'inactive');
-    
-    if (inactiveKey) {
-        inactiveKey.status = 'active';
-        inactiveKey.devices = 1;
-        inactiveKey.activatedAt = new Date().toISOString();
-        saveUserKeys();
-        loadStatus();
-        showToast('Ключ активирован');
     }
 }
 
@@ -257,7 +232,7 @@ function payWith(method) {
         userKeys.push(newKey);
         saveUserKeys();
         
-        showToast('Ключ создан! Активируйте его в статусе');
+        showToast('Ключ создан! Скопируйте его и активируйте в приложении');
         tg.MainButton.hide();
         closeModal();
         
@@ -438,19 +413,14 @@ function refreshStats() {
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM загружен');
-    
     // Получаем параметры из URL
     const params = getUrlParams();
-    console.log('Параметры URL:', params);
     
     // Загружаем профиль и ключи
     loadProfile();
     
     // Если есть ключ в URL, сохраняем его
     if (params.key && params.expires) {
-        console.log('Найден ключ в URL:', params.key);
-        
         const newKey = {
             id: Date.now(),
             key: params.key,
@@ -461,18 +431,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         loadUserKeys();
-        console.log('Текущие ключи до добавления:', userKeys);
-        
         if (!userKeys.some(k => k.key === params.key)) {
             userKeys.push(newKey);
             saveUserKeys();
-            console.log('Ключ сохранен, новые ключи:', userKeys);
             showToast('Ключ получен от бота!');
             
             // Переключаемся на вкладку статуса
             document.querySelector('[data-tab="status"]').click();
-        } else {
-            console.log('Ключ уже существует');
         }
     }
     
