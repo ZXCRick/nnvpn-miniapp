@@ -579,4 +579,157 @@ body {
 .tab.active {
     display: block;
 }
+/* Статистика */
+.stats-section {
+    margin-bottom: 24px;
+}
+
+.stats-section h3 {
+    font-size: 14px;
+    color: #8A8C9A;
+    margin-bottom: 12px;
+}
+
+/* Промо */
+.promo-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 24px;
+}
+
+.summary-card {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 16px;
+    padding: 16px 8px;
+    text-align: center;
+}
+
+.summary-label {
+    display: block;
+    font-size: 10px;
+    color: #8A8C9A;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+}
+
+.summary-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #27E0A8;
+}
+
+.promo-create {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 24px;
+}
+
+.promo-create h3 {
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.create-form {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-input {
+    flex: 1;
+    background: #0B0E1A;
+    border: 1px solid #1E222F;
+    border-radius: 12px;
+    padding: 12px;
+    color: #FFFFFF;
+    font-size: 13px;
+}
+
+.promo-links {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.promo-links h3 {
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.promo-link-item {
+    background: #0B0E1A;
+    border: 1px solid #1E222F;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.promo-link-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.promo-link-name {
+    font-weight: 600;
+    color: #27E0A8;
+}
+
+.promo-link-url {
+    font-family: monospace;
+    font-size: 11px;
+    color: #8A8C9A;
+    word-break: break-all;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #121624;
+    border-radius: 8px;
+}
+
+.promo-link-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.promo-stat {
+    text-align: center;
+}
+
+.promo-stat-label {
+    display: block;
+    font-size: 9px;
+    color: #8A8C9A;
+    margin-bottom: 4px;
+}
+
+.promo-stat-value {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.promo-link-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.promo-link-actions .btn {
+    flex: 1;
+    padding: 8px;
+    font-size: 11px;
+}
+
+.promo-empty {
+    color: #8A8C9A;
+    text-align: center;
+    padding: 30px 0;
+}
+
 
