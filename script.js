@@ -13,7 +13,6 @@ function loadProfile() {
         document.getElementById('profileName').textContent = 'Гость';
         document.getElementById('profileUsername').textContent = '—';
         document.getElementById('profileId').textContent = 'ID: —';
-        document.getElementById('profileIdShort').textContent = '—';
         return;
     }
 
@@ -21,7 +20,6 @@ function loadProfile() {
     document.getElementById('profileName').textContent = fullName;
     document.getElementById('userName').textContent = user.first_name;
     document.getElementById('profileId').textContent = `ID: ${user.id}`;
-    document.getElementById('profileIdShort').textContent = user.id;
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
     // Дата регистрации
@@ -227,7 +225,7 @@ function renderPromoLinks() {
     const container = document.getElementById('promoLinksList');
     
     if (promoLinks.length === 0) {
-        container.innerHTML = '<div class="promo-empty">У вас пока нет созданных ссылок</div>';
+        container.innerHTML = '<div class="empty-state"><span class="empty-icon">🔗</span><p>У вас пока нет созданных ссылок</p></div>';
         return;
     }
     
@@ -276,8 +274,8 @@ function renderPromoLinks() {
 }
 
 function updatePromoSummary() {
-    const totalClicks = promoLinks.reduce((sum, link) => sum + link.clicks, 0);
-    const totalDemos = promoLinks.reduce((sum, link) => sum + link.demos, 0);
+    const totalClicks = promoLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
+    const totalDemos = promoLinks.reduce((sum, link) => sum + (link.demos || 0), 0);
     const convRate = totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) : 0;
     
     document.getElementById('promoTotalClicks').textContent = totalClicks;
@@ -352,4 +350,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('paymentModal').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
+    
+    // Проверяем создание промо-ссылок (кнопка уже есть в html)
 });
