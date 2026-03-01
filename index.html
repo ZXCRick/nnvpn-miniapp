@@ -3,80 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NN VPN — твой анонимный друг</title>
+    <title>NN VPN — безопасность превыше всего</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app">
-        <!-- Приветственный баннер -->
-        <div class="welcome-banner" id="welcomeBanner">
-            <div class="welcome-text">
-                <h1>⚡ NN VPN</h1>
-                <p>Приватность без компромиссов</p>
+        <!-- Хедер -->
+        <div class="header">
+            <div class="logo">
+                <span class="logo-icon">⚡</span>
+                <span class="logo-text">NN VPN</span>
+            </div>
+            <div class="header-status" id="headerStatus">
+                <span class="status-dot"></span>
+                <span>Защищено</span>
             </div>
         </div>
 
-        <!-- Профиль (всегда первый и большой) -->
+        <!-- Приветственный баннер -->
+        <div class="welcome-banner" id="welcomeBanner">
+            <div class="welcome-text">
+                <h1>Добро пожаловать, <span id="userName">друг</span>!</h1>
+                <p>Мы заботимся о вашей анонимности</p>
+            </div>
+        </div>
+
+        <!-- Профиль -->
         <div class="profile-section" id="profileSection">
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">
                     <img id="avatarImage" src="" alt="" style="display: none;">
-                    <span id="avatarPlaceholder">👤</span>
+                    <span id="avatarPlaceholder"></span>
                 </div>
                 <div class="profile-info">
                     <h2 id="profileName">Загрузка...</h2>
-                    <div class="profile-badges">
+                    <div class="profile-meta">
                         <span class="badge" id="profileTier">FREE</span>
-                        <span class="badge" id="profileStatus">⚡ онлайн</span>
+                        <span class="badge outline" id="profileId">ID: ...</span>
                     </div>
                 </div>
             </div>
             
             <div class="profile-stats">
                 <div class="stat-item">
-                    <span class="stat-label">ID</span>
-                    <span class="stat-value" id="profileId">...</span>
-                </div>
-                <div class="stat-item">
                     <span class="stat-label">Username</span>
                     <span class="stat-value" id="profileUsername">@...</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">С нами</span>
-                    <span class="stat-value" id="profileDate">...</span>
+                    <span class="stat-label">На сервисе с:</span>
+                    <span class="stat-value" id="profileJoinDate">...</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Реферер</span>
+                    <span class="stat-value" id="profileReferrer">—</span>
                 </div>
             </div>
         </div>
 
         <!-- Навигация -->
         <nav class="nav">
-            <button class="nav-btn" data-tab="plans">
-                <span class="emoji">💰</span>
-                <span>Тарифы</span>
-            </button>
-            <button class="nav-btn" data-tab="status">
-                <span class="emoji">📊</span>
-                <span>Статус</span>
-            </button>
-            <button class="nav-btn" data-tab="history">
-                <span class="emoji">📜</span>
-                <span>История</span>
-            </button>
-            <button class="nav-btn admin-only" data-tab="stats">
-                <span class="emoji">📈</span>
-                <span>Статистика</span>
-            </button>
+            <button class="nav-btn active" data-tab="plans">Тарифы</button>
+            <button class="nav-btn" data-tab="status">Статус</button>
+            <button class="nav-btn" data-tab="history">История</button>
+            <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
         </nav>
 
         <!-- Контент -->
         <div class="content">
             <!-- Тарифы -->
-            <div class="tab" id="tab-plans">
-                <h2>💰 Выбери тариф</h2>
+            <div class="tab active" id="tab-plans">
+                <h2>Выберите тариф</h2>
                 <div class="plans">
                     <div class="plan-card" onclick="selectPlan('month')">
-                        <div class="plan-emoji">🌱</div>
                         <h3>1 месяц</h3>
                         <div class="price">250 ₽</div>
                         <ul>
@@ -88,21 +87,18 @@
                     </div>
                     
                     <div class="plan-card popular" onclick="selectPlan('quarter')">
-                        <div class="popular-badge">🔥 ХИТ</div>
-                        <div class="plan-emoji">🚀</div>
+                        <div class="popular-badge">Популярное</div>
                         <h3>3 месяца</h3>
                         <div class="price">750 ₽</div>
                         <ul>
                             <li>✓ 2 устройства</li>
                             <li>✓ Все серверы</li>
                             <li>✓ Split Tunneling</li>
-                            <li>✓ Экономия 0₽</li>
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
                     
                     <div class="plan-card" onclick="selectPlan('halfyear')">
-                        <div class="plan-emoji">🌟</div>
                         <h3>6 месяцев</h3>
                         <div class="price">1500 ₽</div>
                         <ul>
@@ -117,45 +113,33 @@
 
             <!-- Статус подписки -->
             <div class="tab" id="tab-status">
-                <h2>📊 Статус подписки</h2>
+                <h2>Статус подписки</h2>
                 <div class="status-card">
                     <div class="status-header">
-                        <div>
-                            <span class="status-label">Тариф</span>
-                            <span class="status-value" id="statusTier">FREE</span>
-                        </div>
-                        <div>
-                            <span class="status-label">Устройства</span>
-                            <span class="status-value" id="statusDevices">0/2</span>
-                        </div>
+                        <span class="status-label">Тариф</span>
+                        <span class="status-value" id="statusTier">FREE</span>
                     </div>
                     
-                    <div class="progress-container">
-                        <div class="progress-bar">
-                            <div class="progress-fill" id="statusProgress" style="width: 0%"></div>
-                        </div>
-                        <span class="progress-text" id="statusDays">0 дней осталось</span>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="statusProgress" style="width: 0%"></div>
                     </div>
                     
-                    <div class="key-card">
-                        <span class="key-label">🔑 Текущий ключ</span>
-                        <code class="key-value" id="statusKey">—</code>
-                        <button class="key-copy" onclick="copyKey()">📋</button>
+                    <div class="status-info">
+                        <p>🔑 Ключ: <span id="statusKey">—</span></p>
+                        <p>📅 Действует до: <span id="statusExpires">—</span></p>
+                        <p>📱 Устройств: <span id="statusDevices">0/2</span></p>
                     </div>
                     
-                    <p class="expires" id="statusExpires"></p>
+                    <button class="btn" onclick="copyKey()">📋 Копировать ключ</button>
                 </div>
-                <button class="btn btn-block" onclick="refreshStatus()">
-                    🔄 Обновить статус
-                </button>
+                <button class="btn btn-outline" onclick="refreshStatus()">Обновить статус</button>
             </div>
 
             <!-- История -->
             <div class="tab" id="tab-history">
-                <h2>📜 История операций</h2>
+                <h2>История операций</h2>
                 <div class="history-list" id="historyList">
                     <div class="history-empty">
-                        <span class="emoji">✨</span>
                         <p>Пока нет операций</p>
                     </div>
                 </div>
@@ -163,32 +147,26 @@
 
             <!-- Статистика (админ) -->
             <div class="tab" id="tab-stats">
-                <h2>📈 Статистика сервиса</h2>
+                <h2>Статистика сервиса</h2>
                 <div class="stats-grid" id="statsGrid">
                     <div class="stat-card">
-                        <span class="stat-emoji">👥</span>
                         <span class="stat-label">Пользователей</span>
                         <span class="stat-value" id="statsUsers">0</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-emoji">📱</span>
-                        <span class="stat-label">Активных сегодня</span>
+                        <span class="stat-label">Активных</span>
                         <span class="stat-value" id="statsActive">0</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-emoji">💰</span>
                         <span class="stat-label">Продаж</span>
                         <span class="stat-value" id="statsSales">0</span>
                     </div>
                     <div class="stat-card">
-                        <span class="stat-emoji">🎁</span>
-                        <span class="stat-label">Демо-ключей</span>
+                        <span class="stat-label">Демо</span>
                         <span class="stat-value" id="statsDemo">0</span>
                     </div>
                 </div>
-                <button class="btn btn-block" onclick="refreshStats()">
-                    🔄 Обновить статистику
-                </button>
+                <button class="btn" onclick="refreshStats()">Обновить</button>
             </div>
         </div>
     </div>
@@ -200,20 +178,12 @@
             <p id="modalDescription"></p>
             
             <div class="payment-methods">
-                <button class="payment-btn" onclick="payWith('card')">
-                    <span>💳</span> Карта РФ
-                </button>
-                <button class="payment-btn" onclick="payWith('sbp')">
-                    <span>🏦</span> СБП
-                </button>
-                <button class="payment-btn" onclick="payWith('yoomoney')">
-                    <span>📱</span> ЮMoney
-                </button>
+                <button class="payment-btn" onclick="payWith('card')">💳 Карта РФ</button>
+                <button class="payment-btn" onclick="payWith('sbp')">🏦 СБП</button>
+                <button class="payment-btn" onclick="payWith('yoomoney')">📱 ЮMoney</button>
             </div>
             
-            <button class="btn btn-block btn-danger" onclick="closeModal()">
-                Отмена
-            </button>
+            <button class="btn btn-danger" onclick="closeModal()">Отмена</button>
         </div>
     </div>
 
