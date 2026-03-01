@@ -1,31 +1,43 @@
-
 let tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
 
 // Данные пользователя из Telegram
 const user = tg.initDataUnsafe?.user;
-const isAdmin = [913301430, 7747044405, 706826056].includes(user?.id); // 🔥 ID админов
+const isAdmin = [913301430, 7747044405, 706826056].includes(user?.id);
 
-// ========== API ==========
-const API_URL = "https://ISWYRE.pythonanywhere.com"; // Твой бэкенд
+// ========== ПРОФИЛЬ С РЕАЛЬНОЙ АВАТАРКОЙ ==========
+function loadProfile() {
+    if (!user) {
+        document.getElementById('profileName').textContent = 'Гость';
+        return;
+    }
 
-async function apiRequest(endpoint, method = "GET", data = null) {
-    try {
-        const options = {
-            method,
-            headers: {
-                "Content-Type": "application/json",
-                "X-Telegram-User": user?.id
-            }
-        };
-        if (data) options.body = JSON.stringify(data);
-        
-        const response = await fetch(`${API_URL}${endpoint}`, options);
-        return await response.json();
-    } catch (error) {
-        showToast("Ошибка соединения");
-        return null;
+    // Имя
+    document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    
+    // ID
+    document.getElementById('profileId').textContent = user.id;
+    
+    // Username
+    document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
+    
+    // Дата (потом из API)
+    document.getElementById('profileDate').textContent = 'сегодня';
+    
+    // Аватарка
+    const avatarImg = document.getElementById('avatarImage');
+    const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+    
+    // Пытаемся получить фото профиля
+    if (user.photo_url) {
+        avatarImg.src = user.photo_url;
+        avatarImg.style.display = 'block';
+        avatarPlaceholder.style.display = 'none';
+    } else {
+        // Показываем заглушку с инициалами
+        const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '');
+        avatarPlaceholder.textContent = initials || '👤';
     }
 }
 
@@ -48,7 +60,6 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         
         // Загружаем данные при переключении
         switch(btn.dataset.tab) {
-            case 'profile': loadProfile(); break;
             case 'status': loadStatus(); break;
             case 'history': loadHistory(); break;
             case 'stats': if (isAdmin) loadStats(); break;
@@ -58,85 +69,33 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
 
 // Показываем админ-кнопку если нужно
 if (isAdmin) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-}
-
-// ========== ПРОФИЛЬ==========
-async function loadProfile() {
-    const data = await apiRequest('/api/profile');
-    if (!data) return;
-    
-    // Заполняем данные профиля
-    document.getElementById('profile-id').textContent = data.id || user?.id;
-    document.getElementById('profile-name').textContent = data.first_name || user?.first_name;
-    document.getElementById('profile-username').textContent = data.username || user?.username || '—';
-    document.getElementById('profile-tier').textContent = data.tier || 'FREE';
-    document.getElementById('profile-date').textContent = data.created_at?.slice(0,10) || '—';
-    
-    // Обновляем аватар
-    updateAvatar(data, user);
-}
-
-// Функция обновления аватара
-function updateAvatar(profileData, telegramUser) {
-    const avatarElement = document.getElementById('profile-avatar');
-    
-    // Приоритет 1: аватар из профиля (если есть URL)
-    if (profileData?.avatar_url) {
-        avatarElement.innerHTML = `<img src="${profileData.avatar_url}" alt="Avatar">`;
-        return;
-    }
-    
-    // Приоритет 2: username — берём первую букву
-    if (telegramUser?.username) {
-        avatarElement.textContent = telegramUser.username[0].toUpperCase();
-        avatarElement.style.background = getGradientColor(telegramUser.username);
-        return;
-    }
-    
-    // Приоритет 3: имя пользователя
-    if (telegramUser?.first_name) {
-        avatarElement.textContent = telegramUser.first_name[0].toUpperCase();
-        avatarElement.style.background = getGradientColor(telegramUser.first_name);
-        return;
-    }
-    
-    // Дефолтный аватар (если ничего не нашлось)
-    avatarElement.textContent = '⚡';
-}
-
-// Генерируем градиент на основе строки (username/имя)
-function getGradientColor(str) {
-    // Простой хеш от строки для выбора цвета
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-        hash = str.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    
-    // Определяем цвета на основе хеша
-    const hue1 = (hash % 360 + 360) % 360;
-    const hue2 = (hue1 + 120) % 360;
-    
-    return `linear-gradient(135deg, hsl(${hue1}, 70%, 60%) 0%, hsl(${hue2}, 70%, 60%) 100%)`;
-}
-
-function copyId() {
-    navigator.clipboard.writeText(user?.id || '');
-    showToast('ID скопирован');
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'flex');
 }
 
 // ========== СТАТУС ==========
 async function loadStatus() {
-    const data = await apiRequest('/api/status');
-    if (!data) return;
+    const demoKey = localStorage.getItem('demoKey');
+    const expires = localStorage.getItem('keyExpires');
     
-    document.getElementById('status-tier').textContent = data.tier || 'FREE';
-    document.getElementById('status-key').textContent = data.key || 'Нет активного ключа';
-    document.getElementById('status-expires').textContent = data.expires || '—';
-    document.getElementById('status-devices').textContent = `${data.devices || 0}/2`;
-    
-    const progress = data.days_left ? (data.days_left / 30) * 100 : 0;
-    document.getElementById('status-progress').style.width = `${Math.min(100, progress)}%`;
+    if (demoKey) {
+        document.getElementById('statusKey').textContent = demoKey;
+        document.getElementById('statusTier').textContent = 'DEMO';
+        document.getElementById('statusDevices').textContent = '1/2';
+        document.getElementById('statusExpires').textContent = expires ? `Действует до: ${expires}` : '';
+        
+        if (expires) {
+            const daysLeft = Math.ceil((new Date(expires) - new Date()) / (1000 * 60 * 60 * 24));
+            document.getElementById('statusProgress').style.width = `${Math.min(100, (30 - daysLeft) * 3.33)}%`;
+            document.getElementById('statusDays').textContent = `${daysLeft} дней осталось`;
+        }
+    } else {
+        document.getElementById('statusKey').textContent = '—';
+        document.getElementById('statusTier').textContent = 'FREE';
+        document.getElementById('statusDevices').textContent = '0/2';
+        document.getElementById('statusExpires').textContent = '';
+        document.getElementById('statusProgress').style.width = '0%';
+        document.getElementById('statusDays').textContent = '0 дней осталось';
+    }
 }
 
 function refreshStatus() {
@@ -144,36 +103,23 @@ function refreshStatus() {
     showToast('Статус обновлён');
 }
 
-// ========== ИСТОРИЯ ==========
-async function loadHistory() {
-    const data = await apiRequest('/api/history');
-    const list = document.getElementById('history-list');
-    
-    if (!data || data.length === 0) {
-        list.innerHTML = '<div class="history-empty">Пока нет операций</div>';
-        return;
+function copyKey() {
+    const key = document.getElementById('statusKey').textContent;
+    if (key && key !== '—') {
+        navigator.clipboard.writeText(key);
+        showToast('Ключ скопирован');
     }
-    
-    list.innerHTML = data.map(item => `
-        <div class="history-item">
-            <span>${item.date}</span>
-            <span>${item.amount} ₽</span>
-            <span>${item.status}</span>
-        </div>
-    `).join('');
 }
 
-// ========== СТАТИСТИКА (админ) ==========
-async function loadStats() {
+// ========== ИСТОРИЯ ==========
+function loadHistory() {
+    // Заглушка
+}
+
+// ========== СТАТИСТИКА ==========
+function loadStats() {
     if (!isAdmin) return;
-    
-    const data = await apiRequest('/api/stats');
-    if (!data) return;
-    
-    document.getElementById('stats-users').textContent = data.users || 0;
-    document.getElementById('stats-active').textContent = data.active || 0;
-    document.getElementById('stats-sales').textContent = data.sales || 0;
-    document.getElementById('stats-demo').textContent = data.demo || 0;
+    // Заглушка
 }
 
 function refreshStats() {
@@ -192,8 +138,8 @@ let selectedPlan = null;
 
 function selectPlan(plan) {
     selectedPlan = plan;
-    document.getElementById('modal-title').textContent = plans[plan].name;
-    document.getElementById('modal-description').textContent = `Сумма: ${plans[plan].price} ₽`;
+    document.getElementById('modalTitle').textContent = plans[plan].name;
+    document.getElementById('modalDescription').textContent = `Сумма: ${plans[plan].price} ₽`;
     document.getElementById('paymentModal').style.display = 'flex';
 }
 
@@ -208,25 +154,28 @@ async function payWith(method) {
     tg.MainButton.setText('Обработка...');
     tg.MainButton.show();
     
-    const result = await apiRequest('/api/create-payment', 'POST', {
-        user_id: user?.id,
-        plan: selectedPlan,
-        method: method
-    });
-    
-    if (result?.payment_url) {
-        tg.openLink(result.payment_url);
-        setTimeout(() => tg.close(), 1000);
-    } else {
-        showToast('Ошибка создания платежа');
-    }
+    // Здесь будет запрос к бэкенду
+    showToast('Демо-режим: оплата не работает');
     
     tg.MainButton.hide();
     closeModal();
 }
 
-// ========== ЗАГРУЗКА ПРИ СТАРТЕ ==========
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     loadStatus();
+    
+    // Делаем профиль видимым сразу
+    document.getElementById('profileSection').style.display = 'block';
+    
+    // Приветствие
+    if (user?.first_name) {
+        document.querySelector('.welcome-text h1').textContent = `⚡ Привет, ${user.first_name}!`;
+    }
+});
+
+// Закрытие модалки по клику вне
+document.getElementById('paymentModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
 });
