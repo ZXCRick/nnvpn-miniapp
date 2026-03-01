@@ -74,15 +74,21 @@ function loadUserKeys() {
     
     const saved = localStorage.getItem(`keys_${user.id}`);
     if (saved) {
-        userKeys = JSON.parse(saved);
+        try {
+            userKeys = JSON.parse(saved);
+        } catch (e) {
+            userKeys = [];
+        }
     } else {
         userKeys = [];
     }
+    console.log('Загружены ключи:', userKeys); // Для отладки
 }
 
 function saveUserKeys() {
     if (!user) return;
     localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
+    console.log('Ключи сохранены:', userKeys); // Для отладки
 }
 
 // ========== НАВИГАЦИЯ ==========
@@ -98,7 +104,10 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
             activeTab.classList.add('active');
             
             // Загружаем данные
-            if (this.dataset.tab === 'status') loadStatus();
+            if (this.dataset.tab === 'status') {
+                console.log('Загрузка статуса...');
+                loadStatus();
+            }
             else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
             else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
         }
@@ -112,12 +121,19 @@ if (isAdmin) {
 
 // ========== СТАТУС ==========
 function loadStatus() {
-    if (!user) return;
+    if (!user) {
+        console.log('Нет пользователя');
+        return;
+    }
     
     loadUserKeys();
+    console.log('loadStatus: userKeys =', userKeys);
     
     const activeKey = userKeys.find(k => k.status === 'active');
     const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
+    
+    console.log('activeKey:', activeKey);
+    console.log('inactiveKeys:', inactiveKeys);
     
     if (activeKey) {
         document.getElementById('statusKey').textContent = activeKey.key;
@@ -137,6 +153,7 @@ function loadStatus() {
                 const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
                 document.getElementById('statusProgress').style.width = progress + '%';
             } catch (e) {
+                console.log('Ошибка расчета прогресса:', e);
                 document.getElementById('statusProgress').style.width = '0%';
             }
         }
@@ -268,7 +285,11 @@ function loadPromoLinks() {
     
     const saved = localStorage.getItem(`promo_links_${user.id}`);
     if (saved) {
-        promoLinks = JSON.parse(saved);
+        try {
+            promoLinks = JSON.parse(saved);
+        } catch (e) {
+            promoLinks = [];
+        }
     } else {
         promoLinks = [];
         localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
@@ -417,14 +438,19 @@ function refreshStats() {
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM загружен');
+    
     // Получаем параметры из URL
     const params = getUrlParams();
+    console.log('Параметры URL:', params);
     
     // Загружаем профиль и ключи
     loadProfile();
     
     // Если есть ключ в URL, сохраняем его
     if (params.key && params.expires) {
+        console.log('Найден ключ в URL:', params.key);
+        
         const newKey = {
             id: Date.now(),
             key: params.key,
@@ -435,13 +461,18 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         loadUserKeys();
+        console.log('Текущие ключи до добавления:', userKeys);
+        
         if (!userKeys.some(k => k.key === params.key)) {
             userKeys.push(newKey);
             saveUserKeys();
+            console.log('Ключ сохранен, новые ключи:', userKeys);
             showToast('Ключ получен от бота!');
             
             // Переключаемся на вкладку статуса
             document.querySelector('[data-tab="status"]').click();
+        } else {
+            console.log('Ключ уже существует');
         }
     }
     
