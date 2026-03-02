@@ -12,10 +12,11 @@ let userKeys = [];
 
 // ========== ЗАСТАВКА ==========
 window.addEventListener('load', function() {
+    // Показываем заставку 2.2 секунды (чуть дольше из-за красивой анимации)
     setTimeout(() => {
         document.getElementById('splashScreen').classList.add('hidden');
         document.getElementById('app').classList.add('visible');
-    }, 1800); // 1.8 секунды - чуть дольше анимации
+    }, 2200);
 });
 
 // ========== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ИЗ URL ==========
@@ -446,9 +447,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Загружаем статус
     loadStatus();
     
-    // По умолчанию показываем тарифы
-    document.querySelector('[data-tab="plans"]').classList.add('active');
-    document.getElementById('tab-plans').classList.add('active');
+    // По умолчанию показываем СТАТУС (теперь первый)
+    document.querySelector('[data-tab="status"]').classList.add('active');
+    document.getElementById('tab-status').classList.add('active');
     
     // Закрытие модалки
     const modal = document.getElementById('paymentModal');
