@@ -8,10 +8,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Заставка с лого (анимация) -->
+    <!-- Заставка с лого (улучшенный дизайн) -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">
-            <span>NN</span>
+            <div class="logo-circle">
+                <div class="logo-inner-circle">
+                    <span class="logo-text-splash">NN</span>
+                </div>
+            </div>
+            <div class="logo-particles">
+                <div class="particle p1"></div>
+                <div class="particle p2"></div>
+                <div class="particle p3"></div>
+                <div class="particle p4"></div>
+                <div class="particle p5"></div>
+                <div class="particle p6"></div>
+            </div>
         </div>
     </div>
 
@@ -57,10 +69,10 @@
             </div>
         </div>
 
-        <!-- Навигация -->
+        <!-- Навигация (Статус теперь первый) -->
         <nav class="nav">
-            <button class="nav-btn active" data-tab="plans">Тарифы</button>
-            <button class="nav-btn" data-tab="status">Статус</button>
+            <button class="nav-btn active" data-tab="status">Статус</button>
+            <button class="nav-btn" data-tab="plans">Тарифы</button>
             <button class="nav-btn" data-tab="history">История</button>
             <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
             <button class="nav-btn admin-only" data-tab="promo">Промо</button>
@@ -68,8 +80,45 @@
 
         <!-- Контент -->
         <div class="content">
+            <!-- Статус (теперь первый) -->
+            <div class="tab active" id="tab-status">
+                <h2 class="section-title">Статус подписки</h2>
+                <div class="status-card">
+                    <div class="status-header">
+                        <span class="status-label">Тариф</span>
+                        <span class="status-value" id="statusTier">FREE</span>
+                    </div>
+                    
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="statusProgress" style="width: 0%"></div>
+                    </div>
+                    
+                    <div class="status-info">
+                        <div class="info-row">
+                            <span class="info-label">Ключ</span>
+                            <span class="info-value" id="statusKey">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Статус</span>
+                            <span class="info-value" id="keyStatus">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Действует до</span>
+                            <span class="info-value" id="statusExpires">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Устройств</span>
+                            <span class="info-value" id="statusDevices">0/2</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn" onclick="copyKey()">Копировать ключ</button>
+                </div>
+                <button class="btn btn-outline" onclick="refreshStatus()">Обновить</button>
+            </div>
+
             <!-- Тарифы -->
-            <div class="tab active" id="tab-plans">
+            <div class="tab" id="tab-plans">
                 <h2 class="section-title">Тарифы</h2>
                 <div class="plans">
                     <div class="plan-card" onclick="selectPlan('month')">
@@ -106,43 +155,6 @@
                         <button class="btn">Выбрать</button>
                     </div>
                 </div>
-            </div>
-
-            <!-- Статус -->
-            <div class="tab" id="tab-status">
-                <h2 class="section-title">Статус подписки</h2>
-                <div class="status-card">
-                    <div class="status-header">
-                        <span class="status-label">Тариф</span>
-                        <span class="status-value" id="statusTier">FREE</span>
-                    </div>
-                    
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="statusProgress" style="width: 0%"></div>
-                    </div>
-                    
-                    <div class="status-info">
-                        <div class="info-row">
-                            <span class="info-label">Ключ</span>
-                            <span class="info-value" id="statusKey">—</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Статус</span>
-                            <span class="info-value" id="keyStatus">—</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Действует до</span>
-                            <span class="info-value" id="statusExpires">—</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Устройств</span>
-                            <span class="info-value" id="statusDevices">0/2</span>
-                        </div>
-                    </div>
-                    
-                    <button class="btn" onclick="copyKey()">Копировать ключ</button>
-                </div>
-                <button class="btn btn-outline" onclick="refreshStatus()">Обновить</button>
             </div>
 
             <!-- История -->
