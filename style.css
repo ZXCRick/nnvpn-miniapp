@@ -328,7 +328,6 @@ body {
 .logo-icon {
     font-size: 20px;
     color: #27E0A8;
-    animation: glowPulse 2s ease-in-out infinite;
 }
 
 .logo-text {
@@ -974,3 +973,4 @@ body {
 .tab.active {
     display: block;
 }
+
