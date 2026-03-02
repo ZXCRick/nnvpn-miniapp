@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="app">
-        <!-- Хедер -->
+        <!-- Хедер с анимацией лого -->
         <div class="header">
             <div class="logo">
                 <span class="logo-icon">⚡</span>
@@ -21,44 +21,9 @@
             </div>
         </div>
 
-        <!-- Приветственный баннер -->
-        <div class="welcome-banner">
-            <div class="welcome-text">
-                <h1>Добро пожаловать, <span id="userName">Пользователь</span></h1>
-                <p>Мы заботимся о вашей анонимности</p>
-            </div>
-        </div>
-
-        <!-- Профиль -->
-        <div class="profile-section">
-            <div class="profile-header">
-                <div class="profile-avatar" id="profileAvatar">
-                    <img id="avatarImage" src="" alt="" style="display: none;">
-                    <span id="avatarPlaceholder"></span>
-                </div>
-                <div class="profile-info">
-                    <div class="profile-name-wrapper">
-                        <h2 id="profileName">Загрузка...</h2>
-                        <span class="badge" id="profileTier">FREE</span>
-                    </div>
-                    <div class="profile-id">ID: <span id="profileId">...</span></div>
-                </div>
-            </div>
-            
-            <div class="profile-stats">
-                <div class="stat-item">
-                    <div class="stat-label">Username</div>
-                    <div class="stat-value" id="profileUsername">@...</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">На сервисе с</div>
-                    <div class="stat-value" id="profileJoinDate">...</div>
-                </div>
-            </div>
-        </div>
-
         <!-- Навигация -->
         <nav class="nav">
+            <button class="nav-btn active" data-tab="main">Главная</button>
             <button class="nav-btn" data-tab="plans">Тарифы</button>
             <button class="nav-btn" data-tab="status">Статус</button>
             <button class="nav-btn" data-tab="history">История</button>
@@ -68,6 +33,63 @@
 
         <!-- Контент -->
         <div class="content">
+            <!-- ГЛАВНАЯ (новая) -->
+            <div class="tab active" id="tab-main">
+                <!-- Приветствие -->
+                <div class="welcome-message">
+                    <h2>👋 Привет, <span id="userName">Пользователь</span>!</h2>
+                </div>
+                
+                <!-- Карточка тарифа -->
+                <div class="tier-card">
+                    <div class="tier-header">
+                        <span class="tier-label">Твой тариф</span>
+                        <span class="tier-badge" id="mainTier">FREE</span>
+                    </div>
+                    
+                    <div class="tier-info">
+                        <div class="info-row">
+                            <span>🔑 Ключ</span>
+                            <span id="mainKey">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span>📅 Действует до</span>
+                            <span id="mainExpires">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span>📱 Устройства</span>
+                            <span id="mainDevices">0/2</span>
+                        </div>
+                    </div>
+                    
+                    <a href="#" class="upgrade-link" onclick="switchToTab('plans')">
+                        🔗 Улучшить тариф →
+                    </a>
+                </div>
+                
+                <!-- Быстрая статистика -->
+                <div class="quick-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Сервер</span>
+                        <span class="stat-value" id="mainServer">Авто (Нидерланды)</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Сегодня</span>
+                        <span class="stat-value" id="mainTraffic">0 MB</span>
+                    </div>
+                </div>
+
+                <!-- Кнопки быстрых действий -->
+                <div class="quick-actions">
+                    <button class="btn btn-outline" onclick="switchToTab('status')">
+                        📊 Детальный статус
+                    </button>
+                    <button class="btn btn-outline" onclick="switchToTab('plans')">
+                        💰 Тарифы
+                    </button>
+                </div>
+            </div>
+
             <!-- Тарифы -->
             <div class="tab" id="tab-plans">
                 <h2 class="section-title">Тарифы</h2>
@@ -108,9 +130,9 @@
                 </div>
             </div>
 
-            <!-- Статус -->
+            <!-- Статус (детальный) -->
             <div class="tab" id="tab-status">
-                <h2 class="section-title">Статус подписки</h2>
+                <h2 class="section-title">Детальный статус</h2>
                 <div class="status-card">
                     <div class="status-header">
                         <span class="status-label">Тариф</span>
