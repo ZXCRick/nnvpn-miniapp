@@ -10,6 +10,14 @@ const isAdmin = user && ADMIN_IDS.includes(user.id);
 // Хранилище ключей
 let userKeys = [];
 
+// ========== ЗАСТАВКА ==========
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        document.getElementById('splashScreen').classList.add('hidden');
+        document.getElementById('app').classList.add('visible');
+    }, 1800); // 1.8 секунды - чуть дольше анимации
+});
+
 // ========== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ИЗ URL ==========
 function getUrlParams() {
     const params = new URLSearchParams(window.location.search);
@@ -116,7 +124,7 @@ if (isAdmin) {
     document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
-// ========== СТАТУС (БЕЗ СМАЙЛИКОВ) ==========
+// ========== СТАТУС ==========
 function loadStatus() {
     if (!user) return;
     
@@ -126,7 +134,6 @@ function loadStatus() {
     const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
     
     if (activeKey) {
-        // Активный ключ
         document.getElementById('statusKey').textContent = activeKey.key;
         document.getElementById('statusTier').textContent = activeKey.type;
         document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
@@ -147,7 +154,6 @@ function loadStatus() {
             }
         }
     } else if (inactiveKeys.length > 0) {
-        // Неактивный ключ
         const key = inactiveKeys[0];
         document.getElementById('statusKey').textContent = key.key;
         document.getElementById('statusTier').textContent = key.type;
@@ -156,7 +162,6 @@ function loadStatus() {
         document.getElementById('keyStatus').textContent = 'Неактивен';
         document.getElementById('statusProgress').style.width = '0%';
     } else {
-        // Нет ключей
         document.getElementById('statusKey').textContent = '—';
         document.getElementById('statusTier').textContent = 'FREE';
         document.getElementById('statusDevices').textContent = '0/2';
@@ -435,118 +440,15 @@ document.addEventListener('DOMContentLoaded', () => {
             userKeys.push(newKey);
             saveUserKeys();
             showToast('Ключ получен');
-            
-            // Переключаемся на вкладку статуса
-            document.querySelector('[data-tab="status"]').click();
         }
     }
     
     // Загружаем статус
     loadStatus();
     
-    // По умолчанию показываем тарифы (если нет ключа в URL)
-    if (!params.key) {
-        document.querySelector('[data-tab="plans"]').classList.add('active');
-        document.getElementById('tab-plans').classList.add('active');
-    }
-    
-    // Закрытие модалки
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-    }
-});
-
-
-// Переключение на другой таб
-function switchToTab(tabName) {
-    const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
-    if (targetBtn) {
-        targetBtn.click();
-    }
-}
-
-// Обновление данных на главной
-function updateMainScreen() {
-    if (!user) return;
-    
-    loadUserKeys();
-    
-    const activeKey = userKeys.find(k => k.status === 'active');
-    const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
-    
-    if (activeKey) {
-        // Активный ключ
-        document.getElementById('mainTier').textContent = activeKey.type;
-        document.getElementById('mainKey').textContent = activeKey.key.substring(0, 15) + '...';
-        document.getElementById('mainExpires').textContent = activeKey.expires || '—';
-        document.getElementById('mainDevices').textContent = `${activeKey.devices || 1}/2`;
-    } else if (inactiveKeys.length > 0) {
-        // Неактивный ключ
-        const key = inactiveKeys[0];
-        document.getElementById('mainTier').textContent = key.type;
-        document.getElementById('mainKey').textContent = key.key.substring(0, 15) + '...';
-        document.getElementById('mainExpires').textContent = key.expires || '—';
-        document.getElementById('mainDevices').textContent = '0/2';
-    } else {
-        // Нет ключей
-        document.getElementById('mainTier').textContent = 'FREE';
-        document.getElementById('mainKey').textContent = '—';
-        document.getElementById('mainExpires').textContent = '—';
-        document.getElementById('mainDevices').textContent = '0/2';
-    }
-    
-    // Обновляем сервер (заглушка)
-    document.getElementById('mainServer').textContent = 'Нидерланды (38ms)';
-    
-    // Обновляем трафик (заглушка)
-    const traffic = Math.floor(Math.random() * 500) + 50;
-    document.getElementById('mainTraffic').textContent = traffic + ' MB';
-}
-
-// Переопределяем существующую функцию loadStatus, чтобы обновлять и главную
-const originalLoadStatus = loadStatus;
-loadStatus = function() {
-    originalLoadStatus();
-    updateMainScreen();
-};
-
-// Обновляем инициализацию
-document.addEventListener('DOMContentLoaded', () => {
-    // Получаем параметры из URL
-    const params = getUrlParams();
-    
-    // Загружаем профиль и ключи
-    loadProfile();
-    
-    // Если есть ключ в URL, сохраняем его
-    if (params.key && params.expires) {
-        const newKey = {
-            id: Date.now(),
-            key: params.key,
-            type: 'DEMO',
-            status: 'inactive',
-            expires: params.expires,
-            devices: 0
-        };
-        
-        loadUserKeys();
-        if (!userKeys.some(k => k.key === params.key)) {
-            userKeys.push(newKey);
-            saveUserKeys();
-            showToast('Ключ получен');
-        }
-    }
-    
-    // Загружаем статус и обновляем главную
-    loadStatus();
-    updateMainScreen();
-    
-    // По умолчанию показываем главную
-    document.querySelector('[data-tab="main"]').classList.add('active');
-    document.getElementById('tab-main').classList.add('active');
+    // По умолчанию показываем тарифы
+    document.querySelector('[data-tab="plans"]').classList.add('active');
+    document.getElementById('tab-plans').classList.add('active');
     
     // Закрытие модалки
     const modal = document.getElementById('paymentModal');
