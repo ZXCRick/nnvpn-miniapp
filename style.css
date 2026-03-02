@@ -9,12 +9,99 @@ body {
     background: #0B0E1A;
     color: #FFFFFF;
     min-height: 100vh;
+    overflow-x: hidden;
 }
 
+/* ===== ЗАСТАВКА ===== */
+.splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #0B0E1A;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+.splash-screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.splash-logo {
+    width: 120px;
+    height: 120px;
+    background: #27E0A8;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: splashAnimation 1.5s ease-in-out forwards;
+    box-shadow: 0 0 50px rgba(39, 224, 168, 0.5);
+}
+
+.splash-logo span {
+    font-size: 48px;
+    font-weight: 800;
+    color: #0B0E1A;
+    animation: logoPop 1.5s ease-in-out forwards;
+}
+
+@keyframes splashAnimation {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    30% {
+        transform: scale(1.2) rotate(180deg);
+        opacity: 1;
+    }
+    60% {
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0) rotate(540deg);
+        opacity: 0;
+    }
+}
+
+@keyframes logoPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    30% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    60% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0);
+        opacity: 0;
+    }
+}
+
+/* ===== ОСНОВНОЙ КОНТЕНТ ===== */
 .app {
     max-width: 420px;
     margin: 0 auto;
     padding: 20px 16px;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.app.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 /* Хедер */
@@ -57,29 +144,7 @@ body {
     border-radius: 50%;
 }
 
-/* Баннер */
-.welcome-banner {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.welcome-text h1 {
-    font-size: 20px;
-    font-weight: 600;
-    margin-bottom: 6px;
-    word-break: break-word;
-}
-
-.welcome-text p {
-    font-size: 13px;
-    color: #8A8C9A;
-    line-height: 1.5;
-}
-
-/* Профиль (исправлен для длинных имён) */
+/* Профиль */
 .profile-section {
     background: #121624;
     border: 1px solid #1E222F;
@@ -117,7 +182,7 @@ body {
 
 .profile-info {
     flex: 1;
-    min-width: 0; /* Важно для обрезки текста */
+    min-width: 0;
 }
 
 .profile-name-wrapper {
@@ -341,16 +406,6 @@ body {
 .btn-danger:hover {
     background: #FF5E5E;
     color: #0B0E1A;
-}
-
-.key-actions {
-    display: flex;
-    gap: 8px;
-    margin-top: 8px;
-}
-
-.key-actions .btn {
-    flex: 1;
 }
 
 /* Статус */
@@ -673,205 +728,3 @@ body {
 .tab.active {
     display: block;
 }
-
-
-.welcome-message {
-    margin-bottom: 16px;
-}
-
-.welcome-message h2 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #FFFFFF;
-}
-
-/* Карточка тарифа */
-.tier-card {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 20px;
-    padding: 20px;
-    margin: 16px 0;
-    transition: transform 0.2s ease;
-}
-
-.tier-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(39, 224, 168, 0.15);
-    border-color: #27E0A8;
-}
-
-.tier-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-}
-
-.tier-label {
-    font-size: 14px;
-    color: #8A8C9A;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.tier-badge {
-    background: #27E0A8;
-    color: #0B0E1A;
-    padding: 4px 12px;
-    border-radius: 30px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.tier-info {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-bottom: 16px;
-}
-
-.tier-info .info-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    padding: 8px 0;
-    border-bottom: 1px solid #1E222F;
-}
-
-.tier-info .info-row:last-child {
-    border-bottom: none;
-}
-
-.tier-info .info-row span:first-child {
-    color: #8A8C9A;
-}
-
-.tier-info .info-row span:last-child {
-    color: #FFFFFF;
-    font-weight: 500;
-}
-
-.upgrade-link {
-    display: block;
-    text-align: center;
-    color: #27E0A8;
-    text-decoration: none;
-    font-size: 14px;
-    font-weight: 500;
-    padding: 12px;
-    border-top: 1px solid #1E222F;
-    margin-top: 8px;
-    transition: all 0.2s ease;
-}
-
-.upgrade-link:hover {
-    background: #1E222F;
-    border-radius: 0 0 20px 20px;
-    color: #FFFFFF;
-}
-
-/* Быстрая статистика */
-.quick-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    margin: 16px 0;
-}
-
-.quick-stats .stat-item {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 16px;
-    padding: 16px;
-    text-align: center;
-}
-
-.quick-stats .stat-label {
-    display: block;
-    font-size: 11px;
-    color: #8A8C9A;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.quick-stats .stat-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: #27E0A8;
-}
-
-/* Кнопки быстрых действий */
-.quick-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 16px;
-}
-
-.quick-actions .btn {
-    padding: 12px 8px;
-    font-size: 12px;
-}
-
-/* ===== АНИМАЦИИ ===== */
-
-@keyframes logoAppear {
-    0% {
-        opacity: 0;
-        transform: scale(0.8) rotate(-5deg);
-    }
-    50% {
-        opacity: 0.8;
-        transform: scale(1.1) rotate(2deg);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) rotate(0);
-    }
-}
-
-.logo {
-    animation: logoAppear 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.app {
-    animation: fadeIn 0.8s ease-out;
-}
-
-/* Анимация для карточек */
-.tier-card, .plan-card, .status-card {
-    animation: slideUp 0.5s ease-out;
-    animation-fill-mode: both;
-}
-
-@keyframes slideUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Задержки для последовательной анимации */
-.tier-card { animation-delay: 0.1s; }
-.quick-stats { animation-delay: 0.2s; }
-.quick-actions { animation-delay: 0.3s; }
-
