@@ -458,3 +458,101 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+// Переключение на другой таб
+function switchToTab(tabName) {
+    const targetBtn = document.querySelector(`[data-tab="${tabName}"]`);
+    if (targetBtn) {
+        targetBtn.click();
+    }
+}
+
+// Обновление данных на главной
+function updateMainScreen() {
+    if (!user) return;
+    
+    loadUserKeys();
+    
+    const activeKey = userKeys.find(k => k.status === 'active');
+    const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
+    
+    if (activeKey) {
+        // Активный ключ
+        document.getElementById('mainTier').textContent = activeKey.type;
+        document.getElementById('mainKey').textContent = activeKey.key.substring(0, 15) + '...';
+        document.getElementById('mainExpires').textContent = activeKey.expires || '—';
+        document.getElementById('mainDevices').textContent = `${activeKey.devices || 1}/2`;
+    } else if (inactiveKeys.length > 0) {
+        // Неактивный ключ
+        const key = inactiveKeys[0];
+        document.getElementById('mainTier').textContent = key.type;
+        document.getElementById('mainKey').textContent = key.key.substring(0, 15) + '...';
+        document.getElementById('mainExpires').textContent = key.expires || '—';
+        document.getElementById('mainDevices').textContent = '0/2';
+    } else {
+        // Нет ключей
+        document.getElementById('mainTier').textContent = 'FREE';
+        document.getElementById('mainKey').textContent = '—';
+        document.getElementById('mainExpires').textContent = '—';
+        document.getElementById('mainDevices').textContent = '0/2';
+    }
+    
+    // Обновляем сервер (заглушка)
+    document.getElementById('mainServer').textContent = 'Нидерланды (38ms)';
+    
+    // Обновляем трафик (заглушка)
+    const traffic = Math.floor(Math.random() * 500) + 50;
+    document.getElementById('mainTraffic').textContent = traffic + ' MB';
+}
+
+// Переопределяем существующую функцию loadStatus, чтобы обновлять и главную
+const originalLoadStatus = loadStatus;
+loadStatus = function() {
+    originalLoadStatus();
+    updateMainScreen();
+};
+
+// Обновляем инициализацию
+document.addEventListener('DOMContentLoaded', () => {
+    // Получаем параметры из URL
+    const params = getUrlParams();
+    
+    // Загружаем профиль и ключи
+    loadProfile();
+    
+    // Если есть ключ в URL, сохраняем его
+    if (params.key && params.expires) {
+        const newKey = {
+            id: Date.now(),
+            key: params.key,
+            type: 'DEMO',
+            status: 'inactive',
+            expires: params.expires,
+            devices: 0
+        };
+        
+        loadUserKeys();
+        if (!userKeys.some(k => k.key === params.key)) {
+            userKeys.push(newKey);
+            saveUserKeys();
+            showToast('Ключ получен');
+        }
+    }
+    
+    // Загружаем статус и обновляем главную
+    loadStatus();
+    updateMainScreen();
+    
+    // По умолчанию показываем главную
+    document.querySelector('[data-tab="main"]').classList.add('active');
+    document.getElementById('tab-main').classList.add('active');
+    
+    // Закрытие модалки
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
+});
