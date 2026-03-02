@@ -9,15 +9,30 @@ const isAdmin = user && ADMIN_IDS.includes(user.id);
 
 // Хранилище ключей
 let userKeys = [];
+let dataLoaded = false;
 
-// ========== ЗАСТАВКА ==========
+// ========== ЗАСТАВКА И ЗАГРУЗКА ДАННЫХ ==========
 window.addEventListener('load', function() {
-    // Показываем заставку 2.2 секунды (чуть дольше из-за красивой анимации)
+    // Начинаем загрузку данных сразу
+    loadAllData();
+    
+    // Показываем заставку минимум 2.5 секунды (чтобы данные точно загрузились)
     setTimeout(() => {
         document.getElementById('splashScreen').classList.add('hidden');
         document.getElementById('app').classList.add('visible');
-    }, 2200);
+    }, 2500);
 });
+
+// Загружаем все данные сразу
+function loadAllData() {
+    loadProfile();
+    const params = getUrlParams();
+    if (params.key && params.expires) {
+        saveKeyFromUrl(params.key, params.expires);
+    }
+    loadStatus();
+    dataLoaded = true;
+}
 
 // ========== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ИЗ URL ==========
 function getUrlParams() {
@@ -28,12 +43,33 @@ function getUrlParams() {
     };
 }
 
+// Сохраняем ключ из URL
+function saveKeyFromUrl(key, expires) {
+    if (!user) return;
+    
+    const newKey = {
+        id: Date.now(),
+        key: key,
+        type: 'DEMO',
+        status: 'inactive',
+        expires: expires,
+        devices: 0
+    };
+    
+    loadUserKeys();
+    if (!userKeys.some(k => k.key === key)) {
+        userKeys.push(newKey);
+        saveUserKeys();
+    }
+}
+
 // ========== ПРОФИЛЬ ==========
 function loadProfile() {
     if (!user) {
         document.getElementById('profileName').textContent = 'Гость';
         document.getElementById('profileUsername').textContent = '—';
         document.getElementById('profileId').textContent = '—';
+        document.getElementById('userName').textContent = 'Гость';
         return;
     }
 
@@ -110,12 +146,14 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         if (activeTab) {
             activeTab.classList.add('active');
             
-            // Загружаем данные
+            // Загружаем данные при переключении
             if (this.dataset.tab === 'status') {
                 loadStatus();
+            } else if (this.dataset.tab === 'stats' && isAdmin) {
+                loadStats();
+            } else if (this.dataset.tab === 'promo' && isAdmin) {
+                loadPromoLinks();
             }
-            else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
-            else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
         }
     });
 });
@@ -417,41 +455,11 @@ function refreshStats() {
     showToast('Статистика обновлена');
 }
 
-// ========== ИНИЦИАЛИЗАЦИЯ ==========
+// ========== ИНИЦИАЛИЗАЦИЯ (уже не нужна, всё в loadAllData) ==========
+// Оставляем для совместимости, но данные уже загружены в loadAllData
+
+// Закрытие модалки по клику вне
 document.addEventListener('DOMContentLoaded', () => {
-    // Получаем параметры из URL
-    const params = getUrlParams();
-    
-    // Загружаем профиль и ключи
-    loadProfile();
-    
-    // Если есть ключ в URL, сохраняем его
-    if (params.key && params.expires) {
-        const newKey = {
-            id: Date.now(),
-            key: params.key,
-            type: 'DEMO',
-            status: 'inactive',
-            expires: params.expires,
-            devices: 0
-        };
-        
-        loadUserKeys();
-        if (!userKeys.some(k => k.key === params.key)) {
-            userKeys.push(newKey);
-            saveUserKeys();
-            showToast('Ключ получен');
-        }
-    }
-    
-    // Загружаем статус
-    loadStatus();
-    
-    // По умолчанию показываем СТАТУС (теперь первый)
-    document.querySelector('[data-tab="status"]').classList.add('active');
-    document.getElementById('tab-status').classList.add('active');
-    
-    // Закрытие модалки
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
