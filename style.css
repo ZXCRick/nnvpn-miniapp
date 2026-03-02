@@ -11,6 +11,9 @@ body {
         linear-gradient(rgba(39, 224, 168, 0.02) 1px, transparent 1px),
         linear-gradient(90deg, rgba(39, 224, 168, 0.02) 1px, transparent 1px);
     background-size: 40px 40px, 40px 40px;
+    color: #FFFFFF;
+    min-height: 100vh;
+    overflow-x: hidden;
 }
 
 /* ===== УЛУЧШЕННАЯ ЗАСТАВКА ===== */
@@ -974,5 +977,6 @@ body {
 .tab.active {
     display: block;
 }
+
 
 
