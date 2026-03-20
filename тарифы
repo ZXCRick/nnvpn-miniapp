@@ -234,17 +234,61 @@ function showToast(text, duration = 3000) {
 
 // ========== ТАРИФЫ ==========
 const plans = {
-    month: { name: '1 месяц', price: 250, type: 'PREMIUM' },
-    quarter: { name: '3 месяца', price: 750, type: 'PREMIUM' },
-    halfyear: { name: '6 месяцев', price: 1500, type: 'PREMIUM' }
+    month: { 
+        name: 'Стартовый', 
+        price: 250, 
+        type: 'PREMIUM',
+        devices: 2,
+        days: 30,
+        oldPrice: null,
+        discount: 0
+    },
+    quarter: { 
+        name: 'Оптимальный', 
+        price: 650, 
+        type: 'PREMIUM',
+        devices: 3,
+        days: 90,
+        oldPrice: 750,
+        discount: 13
+    },
+    family: { 
+        name: 'Семейный', 
+        price: 1200, 
+        type: 'FAMILY',
+        devices: 5,
+        days: 180,
+        oldPrice: 1500,
+        discount: 20
+    },
+    year: { 
+        name: 'Годовой', 
+        price: 2200, 
+        type: 'PREMIUM',
+        devices: 5,
+        days: 365,
+        oldPrice: 3000,
+        discount: 27
+    }
 };
 
 let selectedPlan = null;
 
 function selectPlan(plan) {
     selectedPlan = plan;
-    document.getElementById('modalTitle').textContent = plans[plan].name;
-    document.getElementById('modalDescription').textContent = `Сумма: ${plans[plan].price} ₽`;
+    const planData = plans[plan];
+    
+    // Формируем текст для модалки
+    let description = `Тариф: ${planData.name}\n`;
+    description += `Сумма: ${planData.price} ₽\n`;
+    if (planData.oldPrice) {
+        description += `Экономия: ${planData.discount}% (было ${planData.oldPrice} ₽)\n`;
+    }
+    description += `Устройств: ${planData.devices}\n`;
+    description += `Срок: ${planData.days} дней`;
+    
+    document.getElementById('modalTitle').textContent = planData.name;
+    document.getElementById('modalDescription').textContent = description;
     document.getElementById('paymentModal').style.display = 'flex';
 }
 
@@ -253,47 +297,80 @@ function closeModal() {
     selectedPlan = null;
 }
 
-function payWith(method) {
+async function payWith(method) {
     if (!selectedPlan) return;
+    
+    const planData = plans[selectedPlan];
+    const user = tg.initDataUnsafe?.user;
     
     tg.MainButton.setText('Обработка...');
     tg.MainButton.show();
     
-    setTimeout(() => {
-        const key = generateKey('VPN');
-        const expires = new Date();
-        expires.setMonth(expires.getMonth() + (selectedPlan === 'month' ? 1 : selectedPlan === 'quarter' ? 3 : 6));
+    try {
+        // Запрос к твоему API на сервере
+        const response = await fetch(`${API_BASE}/api/create-payment`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                user_id: user?.id,
+                username: user?.username,
+                plan: selectedPlan,
+                plan_name: planData.name,
+                price: planData.price,
+                method: method,
+                devices: planData.devices,
+                days: planData.days
+            })
+        });
         
-        const newKey = {
-            id: Date.now(),
-            key: key,
-            type: plans[selectedPlan].type,
-            status: 'inactive',
-            expires: expires.toLocaleDateString('ru-RU'),
-            devices: 0
-        };
+        const data = await response.json();
         
-        userKeys.push(newKey);
-        saveUserKeys();
-        
-        showToast('Ключ создан');
-        tg.MainButton.hide();
-        closeModal();
-        
-        if (document.querySelector('[data-tab="status"]').classList.contains('active')) {
-            loadStatus();
+        if (data.success && data.payment_url) {
+            // Открываем ссылку на оплату
+            tg.openLink(data.payment_url);
+            showToast('Перенаправление на оплату...');
+            
+            // Закрываем Mini App через пару секунд
+            setTimeout(() => {
+                tg.close();
+            }, 2000);
+        } else {
+            tg.showAlert('Ошибка: ' + (data.error || 'Не удалось создать платеж'));
+            showToast('Ошибка оплаты. Попробуйте позже');
         }
-    }, 1000);
+        
+    } catch (error) {
+        console.error('Payment error:', error);
+        tg.showAlert('Ошибка соединения. Проверьте интернет');
+        showToast('Ошибка соединения с сервером');
+        
+    } finally {
+        tg.MainButton.hide();
+    }
 }
 
-function generateKey(prefix) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = prefix + '-';
-    for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) result += '-';
-        result += chars[Math.floor(Math.random() * chars.length)];
+// Дополнительная функция для быстрого выбора
+function selectRecommendedPlan() {
+    selectPlan('quarter');
+}
+
+// Функция для расчёта экономии
+function getSavingsText(planKey) {
+    const plan = plans[planKey];
+    if (plan.oldPrice) {
+        const saved = plan.oldPrice - plan.price;
+        return `💰 Экономия ${saved} ₽ (${plan.discount}%)`;
     }
-    return result;
+    return '';
+}
+
+// Функция для получения цены за день
+function getPricePerDay(planKey) {
+    const plan = plans[planKey];
+    const perDay = (plan.price / plan.days).toFixed(2);
+    return `${perDay} ₽/день`;
 }
 
 // ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
