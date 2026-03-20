@@ -129,44 +129,65 @@
             </div>
 
             <!-- Тарифы -->
-            <div class="tab" id="tab-plans">
-                <h2 class="section-title animate-on-load">Тарифы</h2>
-                <div class="plans">
-                    <div class="plan-card animate-on-load" onclick="selectPlan('month')">
-                        <h3>1 месяц</h3>
-                        <div class="price">250 ₽</div>
-                        <ul>
-                            <li>2 устройства</li>
-                            <li>Все серверы</li>
-                            <li>Split Tunneling</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                    
-                    <div class="plan-card popular animate-on-load" onclick="selectPlan('quarter')">
-                        <div class="popular-badge">Популярное</div>
-                        <h3>3 месяца</h3>
-                        <div class="price">750 ₽</div>
-                        <ul>
-                            <li>2 устройства</li>
-                            <li>Все серверы</li>
-                            <li>Split Tunneling</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                    
-                    <div class="plan-card animate-on-load" onclick="selectPlan('halfyear')">
-                        <h3>6 месяцев</h3>
-                        <div class="price">1500 ₽</div>
-                        <ul>
-                            <li>2 устройства</li>
-                            <li>Все серверы</li>
-                            <li>Split Tunneling</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                </div>
-            </div>
+            <!-- Вкладка тарифов (обновлённая) -->
+<div class="tab" id="tab-plans">
+    <h2 class="section-title">Тарифы</h2>
+    <div class="plans">
+        <div class="plan-card" onclick="selectPlan('month')">
+            <h3>Стартовый</h3>
+            <div class="price">250 ₽</div>
+            <div class="period">1 месяц</div>
+            <ul>
+                <li>2 устройства</li>
+                <li>Все серверы</li>
+                <li>Split Tunneling</li>
+            </ul>
+            <button class="btn">Выбрать</button>
+        </div>
+        
+        <div class="plan-card popular" onclick="selectPlan('quarter')">
+            <div class="popular-badge">−13%</div>
+            <h3>Оптимальный</h3>
+            <div class="price">650 ₽</div>
+            <div class="period">3 месяца <span class="old-price">750 ₽</span></div>
+            <ul>
+                <li>3 устройства</li>
+                <li>Все серверы</li>
+                <li>Split Tunneling</li>
+                <li>Приоритетный трафик</li>
+            </ul>
+            <button class="btn">Выбрать</button>
+        </div>
+        
+        <div class="plan-card" onclick="selectPlan('family')">
+            <div class="popular-badge">−20%</div>
+            <h3>Семейный</h3>
+            <div class="price">1200 ₽</div>
+            <div class="period">6 месяцев <span class="old-price">1500 ₽</span></div>
+            <ul>
+                <li>5 устройств</li>
+                <li>Все серверы</li>
+                <li>Split Tunneling</li>
+                <li>Семейный доступ</li>
+            </ul>
+            <button class="btn">Выбрать</button>
+        </div>
+        
+        <div class="plan-card" onclick="selectPlan('year')">
+            <div class="popular-badge">−27%</div>
+            <h3>Годовой</h3>
+            <div class="price">2200 ₽</div>
+            <div class="period">12 месяцев <span class="old-price">3000 ₽</span></div>
+            <ul>
+                <li>5 устройств</li>
+                <li>Все серверы</li>
+                <li>Split Tunneling</li>
+                <li>Максимальная скидка</li>
+            </ul>
+            <button class="btn">Выбрать</button>
+        </div>
+    </div>
+</div>
 
             <!-- История -->
             <div class="tab" id="tab-history">
