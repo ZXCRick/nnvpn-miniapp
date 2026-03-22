@@ -242,10 +242,9 @@ function showToast(text, duration = 3000) {
 
 // ========== ТАРИФЫ ==========
 const plans = {
-    month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
-    quarter: { name: '3 месяца', price: 650, type: 'PREMIUM', devices: 3, days: 90 },
-    family: { name: 'Семейный', price: 1200, type: 'FAMILY', devices: 5, days: 180 },
-    year: { name: 'Годовой', price: 2200, type: 'PREMIUM', devices: 5, days: 365 }
+    month: { name: '1 месяц', price: 250, type: 'PREMIUM' },
+    quarter: { name: '3 месяца', price: 750, type: 'PREMIUM' },
+    halfyear: { name: '6 месяцев', price: 1500, type: 'PREMIUM' }
 };
 
 let selectedPlan = null;
