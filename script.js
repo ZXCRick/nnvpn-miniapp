@@ -2,69 +2,83 @@ let tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
 
-// Данные пользователя
+// ========== НАСТРОЙКИ SUPABASE ==========
+const SUPABASE_URL = "https://qgbnjkbtrfyahkxjrokh.supabase.co";
+const SUPABASE_KEY = "sb_publishable_Yqsx9Hh6d4tl15XVRSvFhw_LyhxLKB4";
+
+// ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
 const user = tg.initDataUnsafe?.user;
 const ADMIN_IDS = [913301430, 7747044405, 706826056];
 const isAdmin = user && ADMIN_IDS.includes(user.id);
 
-// Хранилище ключей
-let userKeys = [];
-let dataLoaded = false;
+// ========== ХРАНИЛИЩЕ ==========
+let userData = null;
+let activeKey = null;
 
-// ========== ЗАСТАВКА И ЗАГРУЗКА ДАННЫХ ==========
+// ========== ЗАСТАВКА ==========
 window.addEventListener('load', function() {
-    // Начинаем загрузку данных сразу
-    loadAllData();
-    
-    // Показываем заставку минимум 2.5 секунды (чтобы данные точно загрузились)
     setTimeout(() => {
         document.getElementById('splashScreen').classList.add('hidden');
         document.getElementById('app').classList.add('visible');
-    }, 2500);
+    }, 1800);
 });
 
-// Загружаем все данные сразу
-function loadAllData() {
-    loadProfile();
-    const params = getUrlParams();
-    if (params.key && params.expires) {
-        saveKeyFromUrl(params.key, params.expires);
-    }
-    loadStatus();
-    dataLoaded = true;
+// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С SUPABASE ==========
+async function fetchUserProfile(tgId) {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    const data = await response.json();
+    return data[0] || null;
 }
 
-// ========== ПОЛУЧЕНИЕ ПАРАМЕТРОВ ИЗ URL ==========
-function getUrlParams() {
-    const params = new URLSearchParams(window.location.search);
-    return {
-        key: params.get('key'),
-        expires: params.get('expires')
-    };
+async function fetchUserKeys(userId) {
+    const now = new Date().toISOString();
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&select=*&order=expires_at.desc`,
+        {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        }
+    );
+    return await response.json();
 }
 
-// Сохраняем ключ из URL
-function saveKeyFromUrl(key, expires) {
-    if (!user) return;
-    
-    const newKey = {
-        id: Date.now(),
-        key: key,
-        type: 'DEMO',
-        status: 'inactive',
-        expires: expires,
-        devices: 0
-    };
-    
-    loadUserKeys();
-    if (!userKeys.some(k => k.key === key)) {
-        userKeys.push(newKey);
-        saveUserKeys();
-    }
+async function fetchActiveKey(userId) {
+    const now = new Date().toISOString();
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`,
+        {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        }
+    );
+    const data = await response.json();
+    return data[0] || null;
 }
 
-// ========== ПРОФИЛЬ ==========
-function loadProfile() {
+async function fetchUserPayments(userId) {
+    const response = await fetch(
+        `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`,
+        {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        }
+    );
+    return await response.json();
+}
+
+// ========== ЗАГРУЗКА ПРОФИЛЯ ==========
+async function loadProfile() {
     if (!user) {
         document.getElementById('profileName').textContent = 'Гость';
         document.getElementById('profileUsername').textContent = '—';
@@ -73,24 +87,29 @@ function loadProfile() {
         return;
     }
 
-    const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
-    document.getElementById('profileName').textContent = fullName;
-    document.getElementById('userName').textContent = user.first_name || 'Пользователь';
-    document.getElementById('profileId').textContent = user.id;
-    document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
+    // Загружаем из Supabase
+    userData = await fetchUserProfile(user.id);
     
-    // Дата регистрации
-    let joinDate = localStorage.getItem(`join_date_${user.id}`);
-    if (!joinDate) {
-        const now = new Date();
-        joinDate = now.toLocaleDateString('ru-RU', { 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
-        });
-        localStorage.setItem(`join_date_${user.id}`, joinDate);
+    if (userData) {
+        document.getElementById('profileName').textContent = userData.tg_username || user.first_name;
+        document.getElementById('profileId').textContent = user.id;
+        document.getElementById('profileUsername').textContent = userData.tg_username ? '@' + userData.tg_username : '—';
+        document.getElementById('profileTier').textContent = userData.tier || 'FREE';
+        document.getElementById('profileJoinDate').textContent = userData.created_at?.slice(0, 10) || '—';
+        
+        // Загружаем активный ключ
+        activeKey = await fetchActiveKey(userData.id);
+        
+        // Обновляем статус
+        await loadStatus();
+    } else {
+        // Если пользователя нет в БД, показываем заглушку
+        document.getElementById('profileName').textContent = user.first_name;
+        document.getElementById('profileId').textContent = user.id;
+        document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
+        document.getElementById('profileTier').textContent = 'FREE';
+        document.getElementById('profileJoinDate').textContent = 'сегодня';
     }
-    document.getElementById('profileJoinDate').textContent = joinDate;
     
     // Аватар
     const avatarImg = document.getElementById('avatarImage');
@@ -104,102 +123,28 @@ function loadProfile() {
         const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '');
         avatarPlaceholder.textContent = initials || '?';
     }
-    
-    // Тариф
-    const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
-    document.getElementById('profileTier').textContent = tier;
-    
-    // Загружаем ключи пользователя
-    loadUserKeys();
-}
-
-// ========== РАБОТА С КЛЮЧАМИ ==========
-function loadUserKeys() {
-    if (!user) return;
-    
-    const saved = localStorage.getItem(`keys_${user.id}`);
-    if (saved) {
-        try {
-            userKeys = JSON.parse(saved);
-        } catch (e) {
-            userKeys = [];
-        }
-    } else {
-        userKeys = [];
-    }
-}
-
-function saveUserKeys() {
-    if (!user) return;
-    localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
-}
-
-// ========== НАВИГАЦИЯ ==========
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        const tabId = `tab-${this.dataset.tab}`;
-        const activeTab = document.getElementById(tabId);
-        if (activeTab) {
-            activeTab.classList.add('active');
-            
-            // Загружаем данные при переключении
-            if (this.dataset.tab === 'status') {
-                loadStatus();
-            } else if (this.dataset.tab === 'stats' && isAdmin) {
-                loadStats();
-            } else if (this.dataset.tab === 'promo' && isAdmin) {
-                loadPromoLinks();
-            }
-        }
-    });
-});
-
-// Показываем админ-кнопки
-if (isAdmin) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
 // ========== СТАТУС ==========
-function loadStatus() {
+async function loadStatus() {
     if (!user) return;
     
-    loadUserKeys();
-    
-    const activeKey = userKeys.find(k => k.status === 'active');
-    const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
-    
     if (activeKey) {
-        document.getElementById('statusKey').textContent = activeKey.key;
-        document.getElementById('statusTier').textContent = activeKey.type;
+        document.getElementById('statusKey').textContent = activeKey.key_hash;
+        document.getElementById('statusTier').textContent = activeKey.type || 'PREMIUM';
         document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
-        document.getElementById('statusExpires').textContent = activeKey.expires || '—';
+        document.getElementById('statusExpires').textContent = activeKey.expires_at?.slice(0, 10) || '—';
         document.getElementById('keyStatus').textContent = 'Активен';
         
-        if (activeKey.expires && activeKey.expires !== '—') {
-            try {
-                const [day, month, year] = activeKey.expires.split('.');
-                const expiresDate = new Date(`${year}-${month}-${day}`);
-                const now = new Date();
-                const totalDays = 30;
-                const daysLeft = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
-                const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
-                document.getElementById('statusProgress').style.width = progress + '%';
-            } catch (e) {
-                document.getElementById('statusProgress').style.width = '0%';
-            }
+        // Прогресс-бар
+        if (activeKey.expires_at) {
+            const expires = new Date(activeKey.expires_at);
+            const now = new Date();
+            const totalDays = 30;
+            const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
+            const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
+            document.getElementById('statusProgress').style.width = progress + '%';
         }
-    } else if (inactiveKeys.length > 0) {
-        const key = inactiveKeys[0];
-        document.getElementById('statusKey').textContent = key.key;
-        document.getElementById('statusTier').textContent = key.type;
-        document.getElementById('statusDevices').textContent = '0/2';
-        document.getElementById('statusExpires').textContent = key.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Неактивен';
-        document.getElementById('statusProgress').style.width = '0%';
     } else {
         document.getElementById('statusKey').textContent = '—';
         document.getElementById('statusTier').textContent = 'FREE';
@@ -223,154 +168,49 @@ function copyKey() {
     }
 }
 
-// ========== УВЕДОМЛЕНИЯ ==========
-function showToast(text, duration = 3000) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = text;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), duration);
-}
-
-// ========== ТАРИФЫ ==========
-const plans = {
-    month: { 
-        name: 'Стартовый', 
-        price: 250, 
-        type: 'PREMIUM',
-        devices: 2,
-        days: 30,
-        oldPrice: null,
-        discount: 0
-    },
-    quarter: { 
-        name: 'Оптимальный', 
-        price: 650, 
-        type: 'PREMIUM',
-        devices: 3,
-        days: 90,
-        oldPrice: 750,
-        discount: 13
-    },
-    family: { 
-        name: 'Семейный', 
-        price: 1200, 
-        type: 'FAMILY',
-        devices: 5,
-        days: 180,
-        oldPrice: 1500,
-        discount: 20
-    },
-    year: { 
-        name: 'Годовой', 
-        price: 2200, 
-        type: 'PREMIUM',
-        devices: 5,
-        days: 365,
-        oldPrice: 3000,
-        discount: 27
+// ========== ИСТОРИЯ ==========
+async function loadHistory() {
+    if (!user || !userData) return;
+    
+    const payments = await fetchUserPayments(userData.id);
+    const list = document.getElementById('historyList');
+    
+    if (!payments || payments.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Нет операций</p></div>';
+        return;
     }
-};
-
-let selectedPlan = null;
-
-function selectPlan(plan) {
-    selectedPlan = plan;
-    const planData = plans[plan];
     
-    // Формируем текст для модалки
-    let description = `Тариф: ${planData.name}\n`;
-    description += `Сумма: ${planData.price} ₽\n`;
-    if (planData.oldPrice) {
-        description += `Экономия: ${planData.discount}% (было ${planData.oldPrice} ₽)\n`;
-    }
-    description += `Устройств: ${planData.devices}\n`;
-    description += `Срок: ${planData.days} дней`;
-    
-    document.getElementById('modalTitle').textContent = planData.name;
-    document.getElementById('modalDescription').textContent = description;
-    document.getElementById('paymentModal').style.display = 'flex';
+    list.innerHTML = payments.map(p => `
+        <div class="history-item">
+            <span>${p.created_at?.slice(0, 10)}</span>
+            <span>${p.amount_rub} ₽</span>
+            <span class="${p.status === 'completed' ? 'status-success' : 'status-pending'}">${p.status}</span>
+        </div>
+    `).join('');
 }
 
-function closeModal() {
-    document.getElementById('paymentModal').style.display = 'none';
-    selectedPlan = null;
-}
-
-async function payWith(method) {
-    if (!selectedPlan) return;
+// ========== СТАТИСТИКА (АДМИН) ==========
+async function loadStats() {
+    if (!isAdmin) return;
     
-    const planData = plans[selectedPlan];
-    const user = tg.initDataUnsafe?.user;
-    
-    tg.MainButton.setText('Обработка...');
-    tg.MainButton.show();
-    
-    try {
-        // Запрос к твоему API на сервере
-        const response = await fetch(`${API_BASE}/api/create-payment`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                user_id: user?.id,
-                username: user?.username,
-                plan: selectedPlan,
-                plan_name: planData.name,
-                price: planData.price,
-                method: method,
-                devices: planData.devices,
-                days: planData.days
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success && data.payment_url) {
-            // Открываем ссылку на оплату
-            tg.openLink(data.payment_url);
-            showToast('Перенаправление на оплату...');
-            
-            // Закрываем Mini App через пару секунд
-            setTimeout(() => {
-                tg.close();
-            }, 2000);
-        } else {
-            tg.showAlert('Ошибка: ' + (data.error || 'Не удалось создать платеж'));
-            showToast('Ошибка оплаты. Попробуйте позже');
-        }
-        
-    } catch (error) {
-        console.error('Payment error:', error);
-        tg.showAlert('Ошибка соединения. Проверьте интернет');
-        showToast('Ошибка соединения с сервером');
-        
-    } finally {
-        tg.MainButton.hide();
-    }
+    // Заглушка — здесь можно добавить реальные запросы
+    document.getElementById('statsTotalUsers').textContent = '1 234';
+    document.getElementById('statsActiveToday').textContent = '345';
+    document.getElementById('statsNewWeek').textContent = '123';
+    document.getElementById('statsDemoKeys').textContent = '456';
+    document.getElementById('statsTotalSales').textContent = '789';
+    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
+    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
+    document.getElementById('statsAvgCheck').textContent = '237 ₽';
+    document.getElementById('statsClickToDemo').textContent = '24%';
+    document.getElementById('statsDemoToPaid').textContent = '12%';
+    document.getElementById('statsChurn').textContent = '5.6%';
+    document.getElementById('statsLTV').textContent = '1 450 ₽';
 }
 
-// Дополнительная функция для быстрого выбора
-function selectRecommendedPlan() {
-    selectPlan('quarter');
-}
-
-// Функция для расчёта экономии
-function getSavingsText(planKey) {
-    const plan = plans[planKey];
-    if (plan.oldPrice) {
-        const saved = plan.oldPrice - plan.price;
-        return `💰 Экономия ${saved} ₽ (${plan.discount}%)`;
-    }
-    return '';
-}
-
-// Функция для получения цены за день
-function getPricePerDay(planKey) {
-    const plan = plans[planKey];
-    const perDay = (plan.price / plan.days).toFixed(2);
-    return `${perDay} ₽/день`;
+function refreshStats() {
+    loadStats();
+    showToast('Статистика обновлена');
 }
 
 // ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
@@ -412,7 +252,7 @@ function renderPromoLinks() {
             <div class="promo-link-item" data-id="${link.id}">
                 <div class="promo-link-header">
                     <span class="promo-link-name">${link.name}</span>
-                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')" style="background:none;border:none;color:#8A8C9A;cursor:pointer;">📋</button>
+                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')">📋</button>
                 </div>
                 <div class="promo-link-url">${link.url}</div>
                 <div class="promo-link-stats">
@@ -510,33 +350,82 @@ function refreshPromoStats() {
     showToast('Статистика обновлена');
 }
 
-function loadStats() {
-    if (!isAdmin) return;
+// ========== УВЕДОМЛЕНИЯ ==========
+function showToast(text, duration = 3000) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = text;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), duration);
+}
+
+// ========== ТАРИФЫ ==========
+const plans = {
+    month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
+    quarter: { name: '3 месяца', price: 650, type: 'PREMIUM', devices: 3, days: 90 },
+    family: { name: 'Семейный', price: 1200, type: 'FAMILY', devices: 5, days: 180 },
+    year: { name: 'Годовой', price: 2200, type: 'PREMIUM', devices: 5, days: 365 }
+};
+
+let selectedPlan = null;
+
+function selectPlan(plan) {
+    selectedPlan = plan;
+    const planData = plans[plan];
     
-    document.getElementById('statsTotalUsers').textContent = '1 234';
-    document.getElementById('statsActiveToday').textContent = '345';
-    document.getElementById('statsNewWeek').textContent = '123';
-    document.getElementById('statsDemoKeys').textContent = '456';
-    document.getElementById('statsTotalSales').textContent = '789';
-    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
-    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
-    document.getElementById('statsAvgCheck').textContent = '237 ₽';
-    document.getElementById('statsClickToDemo').textContent = '24%';
-    document.getElementById('statsDemoToPaid').textContent = '12%';
-    document.getElementById('statsChurn').textContent = '5.6%';
-    document.getElementById('statsLTV').textContent = '1 450 ₽';
+    let description = `${planData.name}\nСумма: ${planData.price} ₽\nУстройств: ${planData.devices}\nСрок: ${planData.days} дней`;
+    document.getElementById('modalTitle').textContent = planData.name;
+    document.getElementById('modalDescription').textContent = description;
+    document.getElementById('paymentModal').style.display = 'flex';
 }
 
-function refreshStats() {
-    loadStats();
-    showToast('Статистика обновлена');
+function closeModal() {
+    document.getElementById('paymentModal').style.display = 'none';
+    selectedPlan = null;
 }
 
-// ========== ИНИЦИАЛИЗАЦИЯ (уже не нужна, всё в loadAllData) ==========
-// Оставляем для совместимости, но данные уже загружены в loadAllData
+function payWith(method) {
+    if (!selectedPlan) return;
+    
+    tg.MainButton.setText('Обработка...');
+    tg.MainButton.show();
+    
+    setTimeout(() => {
+        tg.showAlert('Демо-режим: оплата не работает');
+        tg.MainButton.hide();
+        closeModal();
+    }, 1000);
+}
 
-// Закрытие модалки по клику вне
-document.addEventListener('DOMContentLoaded', () => {
+// ========== НАВИГАЦИЯ ==========
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        const tabId = `tab-${this.dataset.tab}`;
+        document.getElementById(tabId).classList.add('active');
+        
+        if (this.dataset.tab === 'history') loadHistory();
+        else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
+        else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
+    });
+});
+
+// Показываем админ-кнопки
+if (isAdmin) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
+}
+
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadProfile();
+    await loadHistory();
+    
+    document.querySelector('[data-tab="status"]').classList.add('active');
+    document.getElementById('tab-status').classList.add('active');
+    
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
