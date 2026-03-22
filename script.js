@@ -469,6 +469,10 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProfile();
     loadStatus();
     
+    // Активируем только тарифы при старте
+    document.querySelector('[data-tab="plans"]').classList.add('active');
+    document.getElementById('tab-plans').classList.add('active');
+    
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
