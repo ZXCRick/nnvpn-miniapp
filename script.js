@@ -139,7 +139,8 @@ async function loadStatus() {
     if (!user) return;
     
     if (activeKey) {
-        document.getElementById('statusKey').textContent = activeKey.key_hash;
+        const vlessLink = `vless://${activeKey.key_hash}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NNVPN`;
+        document.getElementById('statusKey').textContent = vlessLink;
         document.getElementById('statusTier').textContent = activeKey.type || 'PREMIUM';
         document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
         document.getElementById('statusExpires').textContent = activeKey.expires_at?.slice(0, 10) || '—';
