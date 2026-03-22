@@ -8,7 +8,7 @@ const SUPABASE_KEY = "sb_publishable_Yqsx9Hh6d4tl15XVRSvFhw_LyhxLKB4";
 
 // ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
 const user = tg.initDataUnsafe?.user;
-const ADMIN_IDS = [913301430, 7747044405, 706826056];
+const ADMIN_IDS = [913301430, 706826056];
 const isAdmin = user && ADMIN_IDS.includes(user.id);
 
 // ========== ХРАНИЛИЩЕ ==========
