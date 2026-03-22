@@ -87,10 +87,11 @@ async function loadProfile() {
         return;
     }
 
-    // Загружаем из Supabase
+    // Пробуем загрузить из Supabase
     userData = await fetchUserProfile(user.id);
     
     if (userData) {
+        // Есть данные в БД — показываем их
         document.getElementById('profileName').textContent = userData.tg_username || user.first_name;
         document.getElementById('profileId').textContent = user.id;
         document.getElementById('profileUsername').textContent = userData.tg_username ? '@' + userData.tg_username : '—';
@@ -99,19 +100,25 @@ async function loadProfile() {
         
         // Загружаем активный ключ
         activeKey = await fetchActiveKey(userData.id);
-        
-        // Обновляем статус
         await loadStatus();
     } else {
-        // Если пользователя нет в БД, показываем заглушку
-        document.getElementById('profileName').textContent = user.first_name;
+        // Нет данных в БД — показываем данные из Telegram
+        document.getElementById('profileName').textContent = user.first_name + (user.last_name ? ' ' + user.last_name : '');
         document.getElementById('profileId').textContent = user.id;
         document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
         document.getElementById('profileTier').textContent = 'FREE';
-        document.getElementById('profileJoinDate').textContent = 'сегодня';
+        document.getElementById('profileJoinDate').textContent = '—';
+        
+        // Статус без ключа
+        document.getElementById('statusKey').textContent = '—';
+        document.getElementById('statusTier').textContent = 'FREE';
+        document.getElementById('statusDevices').textContent = '0/2';
+        document.getElementById('statusExpires').textContent = '—';
+        document.getElementById('keyStatus').textContent = '—';
+        document.getElementById('statusProgress').style.width = '0%';
     }
     
-    // Аватар
+    // Аватар (всегда из Telegram)
     const avatarImg = document.getElementById('avatarImage');
     const avatarPlaceholder = document.getElementById('avatarPlaceholder');
     
