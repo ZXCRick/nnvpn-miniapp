@@ -13,7 +13,7 @@ const isAdmin = user && ADMIN_IDS.includes(user.id);
 
 // ========== ХРАНИЛИЩЕ ==========
 let userData = null;
-let activeKey = null;
+window.fullKeyValue = '';
 
 // ========== ЗАСТАВКА ==========
 window.addEventListener('load', function() {
@@ -33,20 +33,6 @@ async function fetchUserProfile(tgId) {
     });
     const data = await response.json();
     return data[0] || null;
-}
-
-async function fetchUserKeys(userId) {
-    const now = new Date().toISOString();
-    const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&select=*&order=expires_at.desc`,
-        {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
-            }
-        }
-    );
-    return await response.json();
 }
 
 async function fetchActiveKey(userId) {
@@ -93,20 +79,14 @@ async function loadProfile() {
     document.getElementById('profileId').textContent = user.id;
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
-    // Дата регистрации
     let joinDate = localStorage.getItem(`join_date_${user.id}`);
     if (!joinDate) {
         const now = new Date();
-        joinDate = now.toLocaleDateString('ru-RU', { 
-            day: 'numeric', 
-            month: 'long', 
-            year: 'numeric' 
-        });
+        joinDate = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
         localStorage.setItem(`join_date_${user.id}`, joinDate);
     }
     document.getElementById('profileJoinDate').textContent = joinDate;
     
-    // Аватар
     const avatarImg = document.getElementById('avatarImage');
     const avatarPlaceholder = document.getElementById('avatarPlaceholder');
     
@@ -119,102 +99,66 @@ async function loadProfile() {
         avatarPlaceholder.textContent = initials || '?';
     }
     
-    // Тариф
     const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
     document.getElementById('profileTier').textContent = tier;
-    
-    // Загружаем ключи пользователя
-    loadUserKeys();
 }
 
-// ========== РАБОТА С КЛЮЧАМИ ==========
-function loadUserKeys() {
+// ========== СТАТУС (из Supabase) ==========
+async function loadStatus() {
     if (!user) return;
     
-    const saved = localStorage.getItem(`keys_${user.id}`);
-    if (saved) {
-        try {
-            userKeys = JSON.parse(saved);
-        } catch (e) {
-            userKeys = [];
-        }
-    } else {
-        userKeys = [];
-    }
-}
-
-function saveUserKeys() {
-    if (!user) return;
-    localStorage.setItem(`keys_${user.id}`, JSON.stringify(userKeys));
-}
-
-// ========== НАВИГАЦИЯ ==========
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
+    try {
+        const userProfile = await fetchUserProfile(user.id);
         
-        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        const tabId = `tab-${this.dataset.tab}`;
-        const activeTab = document.getElementById(tabId);
-        if (activeTab) {
-            activeTab.classList.add('active');
+        if (!userProfile) {
+            document.getElementById('statusKey').textContent = '—';
+            document.getElementById('statusTier').textContent = 'FREE';
+            document.getElementById('statusDevices').textContent = '0/2';
+            document.getElementById('statusExpires').textContent = '—';
+            document.getElementById('keyStatus').textContent = '—';
+            document.getElementById('statusProgress').style.width = '0%';
+            return;
+        }
+        
+        const activeKeyData = await fetchActiveKey(userProfile.id);
+        
+        if (activeKeyData) {
+            const fullKey = activeKeyData.key_hash;
+            window.fullKeyValue = fullKey;
+            const shortKey = fullKey.substring(0, 8) + '...';
             
-            if (this.dataset.tab === 'status') loadStatus();
-            else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
-            else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
-        }
-    });
-});
-
-if (isAdmin) {
-    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
-}
-
-// ========== СТАТУС ==========
-function loadStatus() {
-    if (!user) return;
-    
-    loadUserKeys();
-    
-    const activeKey = userKeys.find(k => k.status === 'active');
-    const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
-    
-    if (activeKey) {
-        document.getElementById('statusKey').textContent = activeKey.key;
-        document.getElementById('statusTier').textContent = activeKey.type;
-        document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
-        document.getElementById('statusExpires').textContent = activeKey.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Активен';
-        
-        if (activeKey.expires && activeKey.expires !== '—') {
-            try {
-                const [day, month, year] = activeKey.expires.split('.');
-                const expiresDate = new Date(`${year}-${month}-${day}`);
+            document.getElementById('statusKey').textContent = shortKey;
+            document.getElementById('statusTier').textContent = activeKeyData.type || 'PREMIUM';
+            document.getElementById('statusDevices').textContent = `${activeKeyData.devices || 1}/2`;
+            document.getElementById('statusExpires').textContent = activeKeyData.expires_at?.slice(0, 10) || '—';
+            document.getElementById('keyStatus').textContent = 'Активен';
+            
+            if (activeKeyData.expires_at) {
+                const expires = new Date(activeKeyData.expires_at);
                 const now = new Date();
-                const totalDays = 30;
-                const daysLeft = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
+                
+                let totalDays = 30;
+                if (activeKeyData.type === 'demo') totalDays = 7;
+                if (activeKeyData.type === 'month') totalDays = 30;
+                if (activeKeyData.type === 'quarter') totalDays = 90;
+                if (activeKeyData.type === 'year') totalDays = 365;
+        
+                const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
                 const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
                 document.getElementById('statusProgress').style.width = progress + '%';
-            } catch (e) {
-                document.getElementById('statusProgress').style.width = '0%';
             }
+        } else {
+            document.getElementById('statusKey').textContent = '—';
+            document.getElementById('statusTier').textContent = 'FREE';
+            document.getElementById('statusDevices').textContent = '0/2';
+            document.getElementById('statusExpires').textContent = '—';
+            document.getElementById('keyStatus').textContent = '—';
+            document.getElementById('statusProgress').style.width = '0%';
         }
-    } else if (inactiveKeys.length > 0) {
-        const key = inactiveKeys[0];
-        document.getElementById('statusKey').textContent = key.key;
-        document.getElementById('statusTier').textContent = key.type;
-        document.getElementById('statusDevices').textContent = '0/2';
-        document.getElementById('statusExpires').textContent = key.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Неактивен';
-        document.getElementById('statusProgress').style.width = '0%';
-    } else {
-        document.getElementById('statusKey').textContent = '—';
-        document.getElementById('statusTier').textContent = 'FREE';
-        document.getElementById('statusDevices').textContent = '0/2';
-        document.getElementById('statusExpires').textContent = '—';
-        document.getElementById('keyStatus').textContent = '—';
-        document.getElementById('statusProgress').style.width = '0%';
+        
+    } catch (error) {
+        console.error('Ошибка загрузки статуса:', error);
+        showToast('Ошибка загрузки статуса');
     }
 }
 
@@ -224,11 +168,67 @@ function refreshStatus() {
 }
 
 function copyKey() {
-    const key = document.getElementById('statusKey').textContent;
-    if (key && key !== '—') {
-        navigator.clipboard.writeText(key);
-        showToast('Ключ скопирован');
+    const fullKey = window.fullKeyValue;
+    if (fullKey && fullKey !== '—') {
+        navigator.clipboard.writeText(fullKey);
+        showToast('VLESS-ключ скопирован');
+    } else {
+        const shortKey = document.getElementById('statusKey').textContent;
+        if (shortKey && shortKey !== '—') {
+            navigator.clipboard.writeText(shortKey);
+            showToast('Ключ скопирован');
+        }
     }
+}
+
+// ========== ИСТОРИЯ ==========
+async function loadHistory() {
+    if (!user) return;
+    
+    const userProfile = await fetchUserProfile(user.id);
+    if (!userProfile) {
+        document.getElementById('historyList').innerHTML = '<div class="empty-state"><p>Нет операций</p></div>';
+        return;
+    }
+    
+    const payments = await fetchUserPayments(userProfile.id);
+    const list = document.getElementById('historyList');
+    
+    if (!payments || payments.length === 0) {
+        list.innerHTML = '<div class="empty-state"><p>Нет операций</p></div>';
+        return;
+    }
+    
+    list.innerHTML = payments.map(p => `
+        <div class="history-item">
+            <span>${p.created_at?.slice(0, 10)}</span>
+            <span>${p.amount_rub} ₽</span>
+            <span class="${p.status === 'completed' ? 'status-success' : 'status-pending'}">${p.status}</span>
+        </div>
+    `).join('');
+}
+
+// ========== СТАТИСТИКА (АДМИН) ==========
+async function loadStats() {
+    if (!isAdmin) return;
+    
+    document.getElementById('statsTotalUsers').textContent = '1 234';
+    document.getElementById('statsActiveToday').textContent = '345';
+    document.getElementById('statsNewWeek').textContent = '123';
+    document.getElementById('statsDemoKeys').textContent = '456';
+    document.getElementById('statsTotalSales').textContent = '789';
+    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
+    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
+    document.getElementById('statsAvgCheck').textContent = '237 ₽';
+    document.getElementById('statsClickToDemo').textContent = '24%';
+    document.getElementById('statsDemoToPaid').textContent = '12%';
+    document.getElementById('statsChurn').textContent = '5.6%';
+    document.getElementById('statsLTV').textContent = '1 450 ₽';
+}
+
+function refreshStats() {
+    loadStats();
+    showToast('Статистика обновлена');
 }
 
 // ========== УВЕДОМЛЕНИЯ ==========
@@ -242,9 +242,10 @@ function showToast(text, duration = 3000) {
 
 // ========== ТАРИФЫ ==========
 const plans = {
-    month: { name: '1 месяц', price: 250, type: 'PREMIUM' },
-    quarter: { name: '3 месяца', price: 750, type: 'PREMIUM' },
-    halfyear: { name: '6 месяцев', price: 1500, type: 'PREMIUM' }
+    month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
+    quarter: { name: '3 месяца', price: 650, type: 'PREMIUM', devices: 3, days: 90 },
+    family: { name: 'Семейный', price: 1200, type: 'FAMILY', devices: 5, days: 180 },
+    year: { name: 'Годовой', price: 2200, type: 'PREMIUM', devices: 5, days: 365 }
 };
 
 let selectedPlan = null;
@@ -263,45 +264,13 @@ function closeModal() {
 
 function payWith(method) {
     if (!selectedPlan) return;
-    
     tg.MainButton.setText('Обработка...');
     tg.MainButton.show();
-    
     setTimeout(() => {
-        const key = generateKey('VPN');
-        const expires = new Date();
-        expires.setMonth(expires.getMonth() + (selectedPlan === 'month' ? 1 : selectedPlan === 'quarter' ? 3 : 6));
-        
-        const newKey = {
-            id: Date.now(),
-            key: key,
-            type: plans[selectedPlan].type,
-            status: 'inactive',
-            expires: expires.toLocaleDateString('ru-RU'),
-            devices: 0
-        };
-        
-        userKeys.push(newKey);
-        saveUserKeys();
-        
-        showToast('Ключ создан');
+        tg.showAlert('Демо-режим: оплата не работает');
         tg.MainButton.hide();
         closeModal();
-        
-        if (document.querySelector('[data-tab="status"]').classList.contains('active')) {
-            loadStatus();
-        }
     }, 1000);
-}
-
-function generateKey(prefix) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = prefix + '-';
-    for (let i = 0; i < 12; i++) {
-        if (i > 0 && i % 4 === 0) result += '-';
-        result += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return result;
 }
 
 // ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
@@ -343,7 +312,7 @@ function renderPromoLinks() {
             <div class="promo-link-item" data-id="${link.id}">
                 <div class="promo-link-header">
                     <span class="promo-link-name">${link.name}</span>
-                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')" style="background:none;border:none;color:#8A8C9A;cursor:pointer;">📋</button>
+                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')">📋</button>
                 </div>
                 <div class="promo-link-url">${link.url}</div>
                 <div class="promo-link-stats">
@@ -441,35 +410,38 @@ function refreshPromoStats() {
     showToast('Статистика обновлена');
 }
 
-function loadStats() {
-    if (!isAdmin) return;
-    
-    document.getElementById('statsTotalUsers').textContent = '1 234';
-    document.getElementById('statsActiveToday').textContent = '345';
-    document.getElementById('statsNewWeek').textContent = '123';
-    document.getElementById('statsDemoKeys').textContent = '456';
-    document.getElementById('statsTotalSales').textContent = '789';
-    document.getElementById('statsTotalRevenue').textContent = '187 250 ₽';
-    document.getElementById('statsMonthRevenue').textContent = '45 600 ₽';
-    document.getElementById('statsAvgCheck').textContent = '237 ₽';
-    document.getElementById('statsClickToDemo').textContent = '24%';
-    document.getElementById('statsDemoToPaid').textContent = '12%';
-    document.getElementById('statsChurn').textContent = '5.6%';
-    document.getElementById('statsLTV').textContent = '1 450 ₽';
-}
+// ========== НАВИГАЦИЯ ==========
+document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+        const tabId = `tab-${this.dataset.tab}`;
+        const activeTab = document.getElementById(tabId);
+        if (activeTab) {
+            activeTab.classList.add('active');
+            
+            if (this.dataset.tab === 'status') loadStatus();
+            else if (this.dataset.tab === 'history') loadHistory();
+            else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
+            else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
+        }
+    });
+});
 
-function refreshStats() {
-    loadStats();
-    showToast('Статистика обновлена');
+if (isAdmin) {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'block');
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', () => {
-    loadProfile();
-    loadStatus();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadProfile();
+    await loadStatus();
+    await loadHistory();
     
-    document.querySelector('[data-tab="plans"]').classList.add('active');
-    document.getElementById('tab-plans').classList.add('active');
+    document.querySelector('[data-tab="status"]').classList.add('active');
+    document.getElementById('tab-status').classList.add('active');
     
     const modal = document.getElementById('paymentModal');
     if (modal) {
