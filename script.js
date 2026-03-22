@@ -92,7 +92,7 @@ async function loadProfile() {
     
     if (userData) {
         // Есть данные в БД — показываем их
-        document.getElementById('profileName').textContent = userData.tg_username || user.first_name;
+        document.getElementById('profileName').textContent = userData.tg_username || user.tg_username;
         document.getElementById('profileId').textContent = user.id;
         document.getElementById('profileUsername').textContent = userData.tg_username ? '@' + userData.tg_username : '—';
         document.getElementById('profileTier').textContent = userData.tier || 'FREE';
