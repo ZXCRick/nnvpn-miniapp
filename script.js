@@ -139,12 +139,16 @@ async function loadStatus() {
     if (!user) return;
     
     if (activeKey) {
-        const vlessLink = `vless://${activeKey.key_hash}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NNVPN`;
-        document.getElementById('statusKey').textContent = vlessLink;
+    
+        const shortKey = activeKey.key_hash.substring(0, 8) + '...';
+        document.getElementById('statusKey').textContent = shortKey;
+        
         document.getElementById('statusTier').textContent = activeKey.type || 'PREMIUM';
         document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
         document.getElementById('statusExpires').textContent = activeKey.expires_at?.slice(0, 10) || '—';
         document.getElementById('keyStatus').textContent = 'Активен';
+    }
+
         
         // Прогресс-бар
         if (activeKey.expires_at) {
