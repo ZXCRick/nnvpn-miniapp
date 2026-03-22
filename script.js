@@ -172,49 +172,69 @@ if (isAdmin) {
 }
 
 // ========== СТАТУС ==========
-function loadStatus() {
+async function loadStatus() {
     if (!user) return;
     
-    loadUserKeys();
-    
-    const activeKey = userKeys.find(k => k.status === 'active');
-    const inactiveKeys = userKeys.filter(k => k.status === 'inactive');
-    
-    if (activeKey) {
-        document.getElementById('statusKey').textContent = activeKey.key;
-        document.getElementById('statusTier').textContent = activeKey.type;
-        document.getElementById('statusDevices').textContent = `${activeKey.devices || 1}/2`;
-        document.getElementById('statusExpires').textContent = activeKey.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Активен';
+    try {
+        // Получаем пользователя из Supabase
+        const userProfile = await fetchUserProfile(user.id);
         
-        if (activeKey.expires && activeKey.expires !== '—') {
-            try {
-                const [day, month, year] = activeKey.expires.split('.');
-                const expiresDate = new Date(`${year}-${month}-${day}`);
+        if (!userProfile) {
+            // Нет пользователя в БД
+            document.getElementById('statusKey').textContent = '—';
+            document.getElementById('statusTier').textContent = 'FREE';
+            document.getElementById('statusDevices').textContent = '0/2';
+            document.getElementById('statusExpires').textContent = '—';
+            document.getElementById('keyStatus').textContent = '—';
+            document.getElementById('statusProgress').style.width = '0%';
+            return;
+        }
+        
+        // Получаем активный ключ из Supabase
+        const activeKeyData = await fetchActiveKey(userProfile.id);
+        
+        if (activeKeyData) {
+            // Активный ключ есть
+            const fullKey = activeKeyData.key_hash;
+            const shortKey = fullKey.substring(0, 8) + '...';
+            
+            document.getElementById('statusKey').textContent = shortKey;
+            document.getElementById('statusTier').textContent = activeKeyData.type || 'PREMIUM';
+            document.getElementById('statusDevices').textContent = `${activeKeyData.devices || 1}/2`;
+            document.getElementById('statusExpires').textContent = activeKeyData.expires_at?.slice(0, 10) || '—';
+            document.getElementById('keyStatus').textContent = 'Активен';
+            
+            // Прогресс-бар
+            if (activeKeyData.expires_at) {
+                const expires = new Date(activeKeyData.expires_at);
                 const now = new Date();
-                const totalDays = 30;
-                const daysLeft = Math.ceil((expiresDate - now) / (1000 * 60 * 60 * 24));
+                
+                let totalDays = 30;
+                if (activeKeyData.type === 'demo') totalDays = 7;
+                if (activeKeyData.type === 'month') totalDays = 30;
+                if (activeKeyData.type === 'quarter') totalDays = 90;
+                if (activeKeyData.type === 'year') totalDays = 365;
+        
+                const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
                 const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
                 document.getElementById('statusProgress').style.width = progress + '%';
-            } catch (e) {
-                document.getElementById('statusProgress').style.width = '0%';
             }
+        } else {
+            // Нет активного ключа
+            document.getElementById('statusKey').textContent = '—';
+            document.getElementById('statusTier').textContent = 'FREE';
+            document.getElementById('statusDevices').textContent = '0/2';
+            document.getElementById('statusExpires').textContent = '—';
+            document.getElementById('keyStatus').textContent = '—';
+            document.getElementById('statusProgress').style.width = '0%';
         }
-    } else if (inactiveKeys.length > 0) {
-        const key = inactiveKeys[0];
-        document.getElementById('statusKey').textContent = key.key;
-        document.getElementById('statusTier').textContent = key.type;
-        document.getElementById('statusDevices').textContent = '0/2';
-        document.getElementById('statusExpires').textContent = key.expires || '—';
-        document.getElementById('keyStatus').textContent = 'Неактивен';
-        document.getElementById('statusProgress').style.width = '0%';
-    } else {
-        document.getElementById('statusKey').textContent = '—';
-        document.getElementById('statusTier').textContent = 'FREE';
-        document.getElementById('statusDevices').textContent = '0/2';
-        document.getElementById('statusExpires').textContent = '—';
-        document.getElementById('keyStatus').textContent = '—';
-        document.getElementById('statusProgress').style.width = '0%';
+        
+        // Сохраняем полный ключ для копирования
+        window.fullKeyValue = activeKeyData ? activeKeyData.key_hash : '';
+        
+    } catch (error) {
+        console.error('Ошибка загрузки статуса:', error);
+        showToast('Ошибка загрузки статуса');
     }
 }
 
@@ -224,9 +244,14 @@ function refreshStatus() {
 }
 
 function copyKey() {
-    const key = document.getElementById('statusKey').textContent;
-    if (key && key !== '—') {
-        navigator.clipboard.writeText(key);
+    const shortKey = document.getElementById('statusKey').textContent;
+    const fullKey = window.fullKeyValue;
+    
+    if (fullKey && fullKey !== '—') {
+        navigator.clipboard.writeText(fullKey);
+        showToast('VLESS-ключ скопирован');
+    } else if (shortKey && shortKey !== '—') {
+        navigator.clipboard.writeText(shortKey);
         showToast('Ключ скопирован');
     }
 }
@@ -305,7 +330,7 @@ function generateKey(prefix) {
     return result;
 }
 
-// ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
+// ========== ПРОМО  ==========
 let promoLinks = [];
 
 function loadPromoLinks() {
@@ -465,13 +490,12 @@ function refreshStats() {
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', () => {
-    loadProfile();
-    loadStatus();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadProfile();
+    await loadStatus(); 
     
-    // Активируем только тарифы при старте
-    document.querySelector('[data-tab="plans"]').classList.add('active');
-    document.getElementById('tab-plans').classList.add('active');
+    document.querySelector('[data-tab="status"]').classList.add('active');
+    document.getElementById('tab-status').classList.add('active');
     
     const modal = document.getElementById('paymentModal');
     if (modal) {
