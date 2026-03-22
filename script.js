@@ -87,6 +87,8 @@ async function loadProfile() {
         return;
     }
 
+    document.getElementById('userName').textContent = user?.username || user?.first_name || 'Пользователь';
+
     // Пробуем загрузить из Supabase
     userData = await fetchUserProfile(user.id);
     
@@ -97,7 +99,6 @@ async function loadProfile() {
         document.getElementById('profileUsername').textContent = userData.tg_username ? '@' + userData.tg_username : '—';
         document.getElementById('profileTier').textContent = userData.tier || 'FREE';
         document.getElementById('profileJoinDate').textContent = userData.created_at?.slice(0, 10) || '—';
-        document.getElementById('userName').textContent = user?.first_name || user?.username || 'Пользователь';
         
         // Загружаем активный ключ
         activeKey = await fetchActiveKey(userData.id);
@@ -109,7 +110,6 @@ async function loadProfile() {
         document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
         document.getElementById('profileTier').textContent = 'FREE';
         document.getElementById('profileJoinDate').textContent = '—';
-        document.getElementById('userName').textContent = user?.first_name || user?.username || 'Пользователь';
         
         // Статус без ключа
         document.getElementById('statusKey').textContent = '—';
