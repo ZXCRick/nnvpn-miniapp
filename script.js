@@ -149,7 +149,13 @@ async function loadStatus() {
         if (activeKey.expires_at) {
             const expires = new Date(activeKey.expires_at);
             const now = new Date();
-            const totalDays = 30;
+            
+            let totalDays = 30;
+            if (activeKey.type === 'demo') totalDays = 7;
+            if (activeKey.type === 'month') totalDays = 30;
+            if (activeKey.type === 'quarter') totalDays = 90;
+            if (activeKey.type === 'year') totalDays = 365;
+    
             const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
             const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
             document.getElementById('statusProgress').style.width = progress + '%';
