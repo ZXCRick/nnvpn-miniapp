@@ -339,7 +339,7 @@ function copyKey() {
             if (activeKeyData && activeKeyData.key_hash) {
                 const fullVless = `vless://${activeKeyData.key_hash}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NN-VPN`;
                 navigator.clipboard.writeText(fullVless);
-                showToast('VLESS-ключ скопирован');
+                showToast('Ключ скопирован');
             } else {
                 showToast('Ключ не найден');
             }
