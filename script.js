@@ -542,7 +542,36 @@ if (isAdmin) {
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', async () => {
+// Ждём полной загрузки страницы и WebApp
+window.addEventListener('load', async function() {
+    console.log('Загрузка страницы завершена, инициализация...');
+    
+    // Небольшая задержка для гарантии инициализации WebApp
+    setTimeout(async () => {
+        await loadAllData();
+        
+        // Активируем первую вкладку
+        const statusBtn = document.querySelector('[data-tab="status"]');
+        if (statusBtn) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            statusBtn.classList.add('active');
+            document.getElementById('tab-status').classList.add('active');
+        }
+        
+        // Скрываем заставку
+        setTimeout(() => {
+            const splash = document.getElementById('splashScreen');
+            const app = document.getElementById('app');
+            if (splash) splash.classList.add('hidden');
+            if (app) app.classList.add('visible');
+        }, 300);
+    }, 100);
+});
+
+// Функция загрузки всех данных (уже есть в вашем коде)
+async function loadAllData() {
+    console.log('Начинаем загрузку всех данных...');
+    
     await loadProfile();
     await loadStatus();
     await loadHistory();
@@ -551,13 +580,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadPromoLinks();
     }
     
-    document.querySelector('[data-tab="status"]').classList.add('active');
-    document.getElementById('tab-status').classList.add('active');
-    
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-    }
-});
+    console.log('Все данные загружены');
+}
+
+// Удалите или закомментируйте старый блок инициализации:
+// document.addEventListener('DOMContentLoaded', async () => {
+//     await loadProfile();
+//     await loadStatus();
+//     ...
+// });
