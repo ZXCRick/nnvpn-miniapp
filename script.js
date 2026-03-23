@@ -8,11 +8,12 @@ const SUPABASE_KEY = "sb_publishable_Yqsx9Hh6d4tl15XVRSvFhw_LyhxLKB4";
 
 // ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
 const user = tg.initDataUnsafe?.user;
-const ADMIN_IDS = [913301430, 7747044405, 706826056];
+const ADMIN_IDS = [913301430, 706826056];
 const isAdmin = user && ADMIN_IDS.includes(user.id);
 
 // ========== ХРАНИЛИЩЕ ==========
 let userData = null;
+let promoLinks = [];
 window.fullKeyValue = '';
 
 // ========== ЗАСТАВКА ==========
@@ -63,6 +64,63 @@ async function fetchUserPayments(userId) {
     return await response.json();
 }
 
+// ========== ПРОМО-ФУНКЦИИ (из Supabase) ==========
+async function fetchPromoLinks() {
+    if (!isAdmin || !user) return [];
+    
+    try {
+        // Загружаем ссылки и связанные клики
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*,clicks(*)`, {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка загрузки промо-ссылок:', error);
+        return [];
+    }
+}
+
+async function createPromoLinkInSupabase(name, userId) {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links`, {
+            method: 'POST',
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                user_id: userId
+            })
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Ошибка создания ссылки:', error);
+        return false;
+    }
+}
+
+async function deletePromoLinkFromSupabase(id) {
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?id=eq.${id}`, {
+            method: 'DELETE',
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        return response.ok;
+    } catch (error) {
+        console.error('Ошибка удаления ссылки:', error);
+        return false;
+    }
+}
+
 // ========== ЗАГРУЗКА ПРОФИЛЯ ==========
 async function loadProfile() {
     if (!user) {
@@ -101,9 +159,12 @@ async function loadProfile() {
     
     const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
     document.getElementById('profileTier').textContent = tier;
+    
+    // Загружаем данные пользователя для промо
+    userData = await fetchUserProfile(user.id);
 }
 
-// ========== СТАТУС (из Supabase) ==========
+// ========== СТАТУС ==========
 async function loadStatus() {
     if (!user) return;
     
@@ -273,23 +334,21 @@ function payWith(method) {
     }, 1000);
 }
 
-// ========== ПРОМО (ДЛЯ ПИАРЩИКА) ==========
-let promoLinks = [];
-
-function loadPromoLinks() {
+// ========== ПРОМО (ДЛЯ ПИАРЩИКА) - ИЗ SUPABASE ==========
+async function loadPromoLinks() {
     if (!isAdmin || !user) return;
     
-    const saved = localStorage.getItem(`promo_links_${user.id}`);
-    if (saved) {
-        try {
-            promoLinks = JSON.parse(saved);
-        } catch (e) {
-            promoLinks = [];
-        }
-    } else {
-        promoLinks = [];
-        localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
-    }
+    const links = await fetchPromoLinks();
+    
+    promoLinks = links.map(link => ({
+        id: link.id,
+        name: link.name,
+        url: `https://t.me/vpnNoNamebot?start=promo_${link.name}`,
+        clicks: link.clicks?.length || 0,
+        demos: link.clicks?.filter(c => c.converted_to_demo).length || 0,
+        sales: link.clicks?.filter(c => c.converted_to_payment).length || 0,
+        revenue: 0
+    }));
     
     renderPromoLinks();
     updatePromoSummary();
@@ -318,11 +377,11 @@ function renderPromoLinks() {
                 <div class="promo-link-stats">
                     <div class="promo-stat">
                         <span class="promo-stat-label">Клики</span>
-                        <span class="promo-stat-value">${link.clicks || 0}</span>
+                        <span class="promo-stat-value">${link.clicks}</span>
                     </div>
                     <div class="promo-stat">
                         <span class="promo-stat-label">Демо</span>
-                        <span class="promo-stat-value">${link.demos || 0}</span>
+                        <span class="promo-stat-value">${link.demos}</span>
                     </div>
                     <div class="promo-stat">
                         <span class="promo-stat-label">Конв</span>
@@ -330,16 +389,16 @@ function renderPromoLinks() {
                     </div>
                     <div class="promo-stat">
                         <span class="promo-stat-label">Продажи</span>
-                        <span class="promo-stat-value">${link.sales || 0}</span>
+                        <span class="promo-stat-value">${link.sales}</span>
                     </div>
                     <div class="promo-stat">
                         <span class="promo-stat-label">Выручка</span>
-                        <span class="promo-stat-value">${link.revenue || 0}₽</span>
+                        <span class="promo-stat-value">${link.revenue}₽</span>
                     </div>
                 </div>
                 <div class="promo-link-actions">
                     <button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">Копировать</button>
-                    <button class="btn btn-outline" onclick="deletePromoLink('${link.id}')">Удалить</button>
+                    <button class="btn btn-outline" onclick="deletePromoLinkById('${link.id}')">Удалить</button>
                 </div>
             </div>
         `;
@@ -358,7 +417,7 @@ function updatePromoSummary() {
     document.getElementById('promoTotalConv').textContent = convRate + '%';
 }
 
-function createPromoLink() {
+async function createPromoLink() {
     const nameInput = document.getElementById('promoNameInput');
     const name = nameInput.value.trim();
     
@@ -367,28 +426,35 @@ function createPromoLink() {
         return;
     }
     
-    if (promoLinks.some(link => link.name === name)) {
+    // Проверяем уникальность
+    const existing = promoLinks.find(link => link.name === name);
+    if (existing) {
         showToast('Такое название уже существует');
         return;
     }
     
-    const newLink = {
-        id: Date.now().toString(),
-        name: name,
-        url: `https://t.me/vpnNoNamebot?start=promo_${name}`,
-        clicks: 0,
-        demos: 0,
-        sales: 0,
-        revenue: 0
-    };
+    const userId = userData?.id;
+    const success = await createPromoLinkInSupabase(name, userId);
     
-    promoLinks.push(newLink);
-    localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
-    
-    nameInput.value = '';
-    renderPromoLinks();
-    updatePromoSummary();
-    showToast('Ссылка создана');
+    if (success) {
+        showToast('Ссылка создана');
+        nameInput.value = '';
+        await loadPromoLinks();
+    } else {
+        showToast('Ошибка создания ссылки');
+    }
+}
+
+async function deletePromoLinkById(id) {
+    if (confirm('Удалить эту ссылку?')) {
+        const success = await deletePromoLinkFromSupabase(id);
+        if (success) {
+            showToast('Ссылка удалена');
+            await loadPromoLinks();
+        } else {
+            showToast('Ошибка удаления');
+        }
+    }
 }
 
 function copyPromoUrl(url) {
@@ -396,17 +462,8 @@ function copyPromoUrl(url) {
     showToast('Ссылка скопирована');
 }
 
-function deletePromoLink(id) {
-    if (confirm('Удалить эту ссылку?')) {
-        promoLinks = promoLinks.filter(link => link.id !== id);
-        localStorage.setItem(`promo_links_${user.id}`, JSON.stringify(promoLinks));
-        renderPromoLinks();
-        updatePromoSummary();
-        showToast('Ссылка удалена');
-    }
-}
-
 function refreshPromoStats() {
+    loadPromoLinks();
     showToast('Статистика обновлена');
 }
 
@@ -439,6 +496,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadProfile();
     await loadStatus();
     await loadHistory();
+    
+    if (isAdmin) {
+        await loadPromoLinks();
+    }
     
     document.querySelector('[data-tab="status"]').classList.add('active');
     document.getElementById('tab-status').classList.add('active');
