@@ -260,7 +260,7 @@ async function loadStatus() {
                 
                 if (isEternal) {
                     // Красивое оформление для вечного ключа
-                    safeSetText('statusExpires', '♾️ Бессрочный');
+                    safeSetText('statusExpires', 'Бессрочный');
                     
                     // Переливающийся прогресс-бар
                     const progressBar = document.getElementById('statusProgress');
