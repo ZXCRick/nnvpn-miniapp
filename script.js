@@ -18,31 +18,31 @@ let allDataLoaded = false;
 let activeKeyData = null;
 window.fullKeyValue = '';
 
-// ========== СРАЗУ ПОКАЗЫВАЕМ ИНТЕРФЕЙС ==========
+// ========== ЗАСТАВКА (ждём полной загрузки) ==========
 window.addEventListener('load', async function() {
-    // Сразу скрываем сплеш и показываем приложение
-    const splashScreen = document.getElementById('splashScreen');
-    const app = document.getElementById('app');
-    
-    if (splashScreen) {
-        splashScreen.classList.add('hidden');
-    }
-    if (app) {
-        app.classList.add('visible');
-    }
-    
-    console.log('🚀 Приложение запущено, загружаем данные в фоне...');
-    console.log('👤 Пользователь:', user ? user.id : 'не авторизован');
-    console.log('👑 Админ:', isAdmin);
-    
-    // Загружаем данные в фоне
     try {
         await loadAllDataWithTimeout();
-        console.log('✅ Все данные успешно загружены');
-        showToast('Данные загружены');
+        
+        const splashScreen = document.getElementById('splashScreen');
+        const app = document.getElementById('app');
+        
+        if (splashScreen) {
+            splashScreen.classList.add('hidden');
+        }
+        if (app) {
+            app.classList.add('visible');
+        }
     } catch (error) {
-        console.error('❌ Ошибка загрузки данных:', error);
-        showToast('Ошибка загрузки данных: ' + error.message);
+        console.error('Ошибка загрузки:', error);
+        const splashScreen = document.getElementById('splashScreen');
+        const app = document.getElementById('app');
+        
+        if (splashScreen) {
+            splashScreen.classList.add('hidden');
+        }
+        if (app) {
+            app.classList.add('visible');
+        }
     }
 });
 
@@ -51,8 +51,6 @@ function safeSetText(elementId, text) {
     const element = document.getElementById(elementId);
     if (element) {
         element.textContent = text;
-    } else {
-        console.warn(`⚠️ Элемент ${elementId} не найден`);
     }
 }
 
@@ -60,8 +58,6 @@ function safeSetHtml(elementId, html) {
     const element = document.getElementById(elementId);
     if (element) {
         element.innerHTML = html;
-    } else {
-        console.warn(`⚠️ Элемент ${elementId} не найден`);
     }
 }
 
@@ -69,35 +65,23 @@ function safeSetStyle(elementId, property, value) {
     const element = document.getElementById(elementId);
     if (element) {
         element.style[property] = value;
-    } else {
-        console.warn(`⚠️ Элемент ${elementId} не найден`);
     }
 }
 
-// ========== ЗАГРУЗКА С ТАЙМАУТОМ ==========
-async function loadAllDataWithTimeout(timeoutMs = 15000) {
-    console.log('📥 Начинаем загрузку данных...');
-    
+// ========== ЗАГРУЗКА ДАННЫХ ==========
+async function loadAllDataWithTimeout(timeoutMs = 10000) {
     const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Таймаут 15 секунд')), timeoutMs);
+        setTimeout(() => reject(new Error('Таймаут')), timeoutMs);
     });
     
     const loadPromise = (async () => {
-        // Загружаем всё последовательно для отладки
         await loadProfile();
-        console.log('✓ Профиль загружен');
-        
         await loadStatus();
-        console.log('✓ Статус загружен');
-        
         await loadHistory();
-        console.log('✓ История загружена');
         
         if (isAdmin) {
             await loadPromoLinks();
-            console.log('✓ Промо-ссылки загружены');
             await loadStats();
-            console.log('✓ Статистика загружена');
         }
         
         allDataLoaded = true;
@@ -106,129 +90,73 @@ async function loadAllDataWithTimeout(timeoutMs = 15000) {
     await Promise.race([loadPromise, timeoutPromise]);
 }
 
-// ========== ПРОГРЕВ БД ==========
-async function warmupDatabase() {
-    console.log('🔥 Прогреваем базу...');
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?limit=1`, {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
-            }
-        });
-        console.log('🔥 Прогрев БД:', response.ok ? 'успешно' : 'ошибка ' + response.status);
-    } catch (error) {
-        console.error('🔥 Ошибка прогрева:', error);
-    }
-}
-
 // ========== ФУНКЦИИ SUPABASE ==========
 async function fetchUserProfile(tgId) {
-    console.log(`🔍 Запрос профиля для ${tgId}`);
-    
     try {
-        const url = `${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`;
-        console.log('📡 Запрос:', url);
-        
-        const response = await fetch(url, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
             headers: {
                 "apikey": SUPABASE_KEY,
                 "Authorization": `Bearer ${SUPABASE_KEY}`
             }
         });
         
-        console.log(`📡 Ответ профиля: статус ${response.status}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) return null;
         
         const data = await response.json();
-        console.log(`📦 Профиль найден:`, data[0] ? 'да' : 'нет');
-        
-        if (data[0]) {
-            console.log(`📦 Данные профиля:`, {
-                id: data[0].id,
-                tg_id: data[0].tg_id,
-                tier: data[0].tier
-            });
-        }
-        
         return data[0] || null;
     } catch (error) {
-        console.error('❌ Ошибка fetchUserProfile:', error);
+        console.error('Ошибка fetchUserProfile:', error);
         return null;
     }
 }
 
 async function fetchActiveKey(userId) {
-    console.log(`🔑 Запрос ключа для user_id: ${userId}`);
-    
     try {
         const now = new Date().toISOString();
-        const url = `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`;
-        console.log('📡 Запрос ключа:', url);
-        
-        const response = await fetch(url, {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`,
+            {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
             }
-        });
+        );
         
-        console.log(`📡 Ответ ключа: статус ${response.status}`);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) return null;
         
         const data = await response.json();
-        console.log(`📦 Ключей найдено: ${data.length}`);
-        
-        if (data[0]) {
-            console.log(`📦 Данные ключа:`, {
-                type: data[0].type,
-                expires_at: data[0].expires_at,
-                key_hash_preview: data[0].key_hash?.substring(0, 20)
-            });
-        }
-        
         return data[0] || null;
     } catch (error) {
-        console.error('❌ Ошибка fetchActiveKey:', error);
+        console.error('Ошибка fetchActiveKey:', error);
         return null;
     }
 }
 
 async function fetchUserPayments(userId) {
-    console.log(`💳 Запрос платежей для user_id: ${userId}`);
-    
     try {
-        const url = `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`;
-        const response = await fetch(url, {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`,
+            {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
             }
-        });
+        );
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        if (!response.ok) return [];
         
-        const data = await response.json();
-        console.log(`💳 Платежей найдено: ${data.length}`);
-        return data;
+        return await response.json();
     } catch (error) {
-        console.error('❌ Ошибка fetchUserPayments:', error);
+        console.error('Ошибка fetchUserPayments:', error);
         return [];
     }
 }
 
-// ========== ЗАГРУЗКА ПРОФИЛЯ ==========
+// ========== ПРОФИЛЬ ==========
 async function loadProfile() {
     if (!user) {
-        console.log('⚠️ Нет пользователя Telegram');
         safeSetText('profileName', 'Гость');
         safeSetText('profileUsername', '—');
         safeSetText('profileId', '—');
@@ -260,7 +188,6 @@ async function loadProfile() {
         if (userData) {
             safeSetText('profileTier', userData.tier || 'FREE');
             
-            // Загружаем дату регистрации
             const keysResponse = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userData.id}&order=created_at.asc&limit=1&select=created_at`, {
                 headers: {
                     "apikey": SUPABASE_KEY,
@@ -281,7 +208,7 @@ async function loadProfile() {
             safeSetText('profileJoinDate', '—');
         }
     } catch (error) {
-        console.error('❌ Ошибка загрузки профиля:', error);
+        console.error('Ошибка загрузки профиля:', error);
         safeSetText('profileTier', 'FREE');
         safeSetText('profileJoinDate', '—');
     }
@@ -289,19 +216,12 @@ async function loadProfile() {
 
 // ========== СТАТУС ==========
 async function loadStatus() {
-    if (!user) {
-        console.log('⚠️ loadStatus: нет пользователя');
-        return;
-    }
-    
-    console.log('📊 loadStatus: начинаем загрузку...');
+    if (!user) return;
     
     try {
-        console.log('📊 Шаг 1: получаем профиль пользователя');
         const userProfile = await fetchUserProfile(user.id);
         
         if (!userProfile) {
-            console.log('⚠️ loadStatus: профиль не найден');
             safeSetText('statusKey', '—');
             safeSetText('statusTier', 'FREE');
             safeSetText('statusDevices', '0/2');
@@ -313,7 +233,6 @@ async function loadStatus() {
             return;
         }
         
-        console.log('📊 Шаг 2: получаем активный ключ');
         activeKeyData = await fetchActiveKey(userProfile.id);
         
         if (activeKeyData) {
@@ -321,7 +240,6 @@ async function loadStatus() {
             window.fullKeyValue = fullKey;
             const shortKey = fullKey.substring(0, 8) + '...';
             
-            console.log('📊 Шаг 3: обновляем UI с данными ключа');
             safeSetText('statusKey', shortKey);
             safeSetText('statusTier', activeKeyData.type || 'PREMIUM');
             safeSetText('statusDevices', `${activeKeyData.devices || 1}/2`);
@@ -343,7 +261,6 @@ async function loadStatus() {
                 safeSetStyle('statusProgress', 'width', progress + '%');
             }
         } else {
-            console.log('⚠️ loadStatus: активный ключ не найден');
             safeSetText('statusKey', '—');
             safeSetText('statusTier', 'FREE');
             safeSetText('statusDevices', '0/2');
@@ -353,37 +270,27 @@ async function loadStatus() {
             window.fullKeyValue = '';
         }
         
-        console.log('📊 loadStatus: завершено');
-        
     } catch (error) {
-        console.error('❌ Ошибка loadStatus:', error);
-        showToast('Ошибка загрузки статуса');
+        console.error('Ошибка загрузки статуса:', error);
     }
 }
 
 function refreshStatus() {
     loadStatus();
-    showToast('Статус обновлён');
 }
 
 function copyKey() {
-    console.log('📋 Копирование ключа, fullKeyValue:', window.fullKeyValue);
-    
     if (window.fullKeyValue && window.fullKeyValue !== '') {
         navigator.clipboard.writeText(window.fullKeyValue);
         showToast('VLESS-ключ скопирован');
-        console.log('✅ Ключ скопирован');
     } else {
         showToast('Ключ не найден');
-        console.log('⚠️ Ключ пустой');
     }
 }
 
 // ========== ИСТОРИЯ ==========
 async function loadHistory() {
     if (!user) return;
-    
-    console.log('📜 Загрузка истории...');
     
     const userProfile = await fetchUserProfile(user.id);
     if (!userProfile) {
@@ -394,10 +301,7 @@ async function loadHistory() {
     const payments = await fetchUserPayments(userProfile.id);
     const list = document.getElementById('historyList');
     
-    if (!list) {
-        console.warn('⚠️ Элемент historyList не найден');
-        return;
-    }
+    if (!list) return;
     
     if (!payments || payments.length === 0) {
         list.innerHTML = '<div class="empty-state"><p>Нет операций</p></div>';
@@ -413,7 +317,7 @@ async function loadHistory() {
     `).join('');
 }
 
-// ========== ПРОМО-ФУНКЦИИ (для админа) ==========
+// ========== ПРОМО-ССЫЛКИ ==========
 async function fetchPromoLinks() {
     if (!isAdmin || !user) return [];
     
@@ -425,10 +329,9 @@ async function fetchPromoLinks() {
             }
         });
         const data = await response.json();
-        console.log('Промо-ссылки загружены:', data.length);
         return data;
     } catch (error) {
-        console.error('Ошибка загрузки:', error);
+        console.error('Ошибка загрузки промо:', error);
         return [];
     }
 }
@@ -436,11 +339,8 @@ async function fetchPromoLinks() {
 async function loadPromoLinks() {
     if (!isAdmin || !user) return;
     
-    console.log('Загрузка промо-ссылок...');
-    
     try {
         const links = await fetchPromoLinks();
-        console.log('Получено ссылок:', links.length);
         
         if (!links || links.length === 0) {
             promoLinks = [];
@@ -470,10 +370,7 @@ async function loadPromoLinks() {
 
 function renderPromoLinks() {
     const container = document.getElementById('promoLinksList');
-    if (!container) {
-        console.warn('⚠️ Элемент promoLinksList не найден');
-        return;
-    }
+    if (!container) return;
     
     if (promoLinks.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Нет созданных ссылок</p></div>';
@@ -607,37 +504,28 @@ function copyPromoUrl(url) {
 
 function refreshPromoStats() {
     loadPromoLinks();
-    showToast('Статистика обновлена');
 }
 
-// ========== СТАТИСТИКА (АДМИН) ==========
+// ========== СТАТИСТИКА ==========
 async function loadStats() {
     if (!isAdmin) return;
     
-    // Проверяем существование каждого элемента перед обновлением
-    const statsElements = {
-        'statsTotalUsers': '1 234',
-        'statsActiveToday': '345',
-        'statsNewWeek': '123',
-        'statsDemoKeys': '456',
-        'statsTotalSales': '789',
-        'statsTotalRevenue': '187 250 ₽',
-        'statsMonthRevenue': '45 600 ₽',
-        'statsAvgCheck': '237 ₽',
-        'statsClickToDemo': '24%',
-        'statsDemoToPaid': '12%',
-        'statsChurn': '5.6%',
-        'statsLTV': '1 450 ₽'
-    };
-    
-    for (const [id, value] of Object.entries(statsElements)) {
-        safeSetText(id, value);
-    }
+    safeSetText('statsTotalUsers', '1 234');
+    safeSetText('statsActiveToday', '345');
+    safeSetText('statsNewWeek', '123');
+    safeSetText('statsDemoKeys', '456');
+    safeSetText('statsTotalSales', '789');
+    safeSetText('statsTotalRevenue', '187 250 ₽');
+    safeSetText('statsMonthRevenue', '45 600 ₽');
+    safeSetText('statsAvgCheck', '237 ₽');
+    safeSetText('statsClickToDemo', '24%');
+    safeSetText('statsDemoToPaid', '12%');
+    safeSetText('statsChurn', '5.6%');
+    safeSetText('statsLTV', '1 450 ₽');
 }
 
 function refreshStats() {
     loadStats();
-    showToast('Статистика обновлена');
 }
 
 // ========== УВЕДОМЛЕНИЯ ==========
@@ -715,9 +603,6 @@ if (isAdmin) {
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('📄 DOM загружен');
-    
-    // Показываем статус таб по умолчанию
     const defaultTab = document.querySelector('[data-tab="status"]');
     if (defaultTab) defaultTab.classList.add('active');
     
@@ -730,7 +615,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (e.target === this) closeModal();
         });
     }
-    
-    // Загружаем данные
-    await loadAllDataWithTimeout();
 });
