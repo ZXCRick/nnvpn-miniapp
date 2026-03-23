@@ -228,9 +228,14 @@ async function loadStatus() {
             safeSetText('statusExpires', '—');
             safeSetText('keyStatus', '—');
             safeSetStyle('statusProgress', 'width', '0%');
+            safeSetStyle('statusProgress', 'background', '#4CAF50');
             activeKeyData = null;
             window.fullKeyValue = '';
             return;
+        }
+        
+        if (userProfile.tier) {
+            safeSetText('profileTier', userProfile.tier);
         }
         
         activeKeyData = await fetchActiveKey(userProfile.id);
@@ -243,22 +248,64 @@ async function loadStatus() {
             safeSetText('statusKey', shortKey);
             safeSetText('statusTier', activeKeyData.type || 'PREMIUM');
             safeSetText('statusDevices', `${activeKeyData.devices || 1}/2`);
-            safeSetText('statusExpires', activeKeyData.expires_at?.slice(0, 10) || '—');
             safeSetText('keyStatus', 'Активен');
             
             if (activeKeyData.expires_at) {
                 const expires = new Date(activeKeyData.expires_at);
                 const now = new Date();
                 
-                let totalDays = 30;
-                if (activeKeyData.type === 'demo') totalDays = 7;
-                if (activeKeyData.type === 'month') totalDays = 30;
-                if (activeKeyData.type === 'quarter') totalDays = 90;
-                if (activeKeyData.type === 'year') totalDays = 365;
-        
-                const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
-                const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
-                safeSetStyle('statusProgress', 'width', progress + '%');
+                // Проверяем, является ли ключ "вечным" (срок > 100 лет)
+                const YEARS_100 = 100 * 365 * 24 * 60 * 60 * 1000; // 100 лет в миллисекундах
+                const isEternal = (expires - now) > YEARS_100;
+                
+                if (isEternal) {
+                    // Красивое оформление для вечного ключа
+                    safeSetText('statusExpires', '♾️ Бессрочный');
+                    
+                    // Переливающийся прогресс-бар
+                    const progressBar = document.getElementById('statusProgress');
+                    if (progressBar) {
+                        progressBar.style.width = '100%';
+                        progressBar.style.background = 'linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7)';
+                        progressBar.style.backgroundSize = '200% 100%';
+                        progressBar.style.animation = 'shimmer 3s ease infinite';
+                        
+                        // Добавляем CSS анимацию, если её нет
+                        if (!document.getElementById('eternal-key-style')) {
+                            const style = document.createElement('style');
+                            style.id = 'eternal-key-style';
+                            style.textContent = `
+                                @keyframes shimmer {
+                                    0% { background-position: 0% 50%; }
+                                    50% { background-position: 100% 50%; }
+                                    100% { background-position: 0% 50%; }
+                                }
+                            `;
+                            document.head.appendChild(style);
+                        }
+                    }
+                } else {
+                    // Обычный прогресс-бар для ограниченных ключей
+                    let totalDays;
+                    if (activeKeyData.type === 'demo') totalDays = 7;
+                    else if (activeKeyData.type === 'month') totalDays = 30;
+                    else if (activeKeyData.type === 'quarter') totalDays = 90;
+                    else if (activeKeyData.type === 'year') totalDays = 365;
+                    else if (activeKeyData.type === 'premium') totalDays = 30;
+                    else totalDays = 30;
+                    
+                    const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
+                    const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
+                    
+                    safeSetText('statusExpires', expires.toLocaleDateString('ru-RU'));
+                    safeSetStyle('statusProgress', 'width', progress + '%');
+                    safeSetStyle('statusProgress', 'background', '#4CAF50');
+                    safeSetStyle('statusProgress', 'backgroundSize', 'auto');
+                    safeSetStyle('statusProgress', 'animation', 'none');
+                }
+            } else {
+                safeSetText('statusExpires', '—');
+                safeSetStyle('statusProgress', 'width', '0%');
             }
         } else {
             safeSetText('statusKey', '—');
@@ -267,6 +314,7 @@ async function loadStatus() {
             safeSetText('statusExpires', '—');
             safeSetText('keyStatus', '—');
             safeSetStyle('statusProgress', 'width', '0%');
+            safeSetStyle('statusProgress', 'background', '#4CAF50');
             window.fullKeyValue = '';
         }
         
