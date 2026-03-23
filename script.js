@@ -160,8 +160,9 @@ async function loadProfile() {
     const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
     document.getElementById('profileTier').textContent = tier;
     
-    // Загружаем данные пользователя для промо
+    // ВАЖНО: загружаем данные для промо
     userData = await fetchUserProfile(user.id);
+    console.log('userData загружен:', userData);
 }
 
 // ========== СТАТУС ==========
@@ -418,6 +419,16 @@ function updatePromoSummary() {
 }
 
 async function createPromoLink() {
+    // Убеждаемся, что userData загружен
+    if (!userData || !userData.id) {
+        console.log('Загружаем userData...');
+        await loadProfile();
+        if (!userData || !userData.id) {
+            showToast('Ошибка загрузки профиля');
+            return;
+        }
+    }
+    
     const nameInput = document.getElementById('promoNameInput');
     const name = nameInput.value.trim();
     
@@ -433,8 +444,7 @@ async function createPromoLink() {
         return;
     }
     
-    const userId = userData?.id;
-    const success = await createPromoLinkInSupabase(name, userId);
+    const success = await createPromoLinkInSupabase(name, userData.id);
     
     if (success) {
         showToast('Ссылка создана');
