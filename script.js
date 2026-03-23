@@ -69,15 +69,14 @@ async function fetchPromoLinks() {
     if (!isAdmin || !user) return [];
     
     try {
-        // Просто загружаем все ссылки без фильтрации
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*,clicks(*)`, {
             headers: {
                 "apikey": SUPABASE_KEY,
                 "Authorization": `Bearer ${SUPABASE_KEY}`
             }
         });
         const data = await response.json();
-        console.log('Загружено промо-ссылок:', data.length, data);
+        console.log('Промо-ссылки со статистикой:', data);
         return data;
     } catch (error) {
         console.error('Ошибка загрузки промо-ссылок:', error);
@@ -280,14 +279,7 @@ async function loadProfile() {
     document.getElementById('profileId').textContent = user.id;
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
-    let joinDate = localStorage.getItem(`join_date_${user.id}`);
-    if (!joinDate) {
-        const now = new Date();
-        joinDate = now.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
-        localStorage.setItem(`join_date_${user.id}`, joinDate);
-    }
-    document.getElementById('profileJoinDate').textContent = joinDate;
-    
+    // Аватар
     const avatarImg = document.getElementById('avatarImage');
     const avatarPlaceholder = document.getElementById('avatarPlaceholder');
     
@@ -300,12 +292,38 @@ async function loadProfile() {
         avatarPlaceholder.textContent = initials || '?';
     }
     
-    const tier = localStorage.getItem(`tier_${user.id}`) || 'FREE';
-    document.getElementById('profileTier').textContent = tier;
-    
-    // ВАЖНО: загружаем данные для промо
-    userData = await fetchUserProfile(user.id);
-    console.log('userData загружен:', userData);
+    // Загружаем данные из Supabase
+    try {
+        userData = await fetchUserProfile(user.id);
+        
+        if (userData) {
+            document.getElementById('profileTier').textContent = userData.tier || 'FREE';
+            
+            // Получаем дату первого ключа
+            const keysResponse = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userData.id}&order=created_at.asc&limit=1&select=created_at`, {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            const keys = await keysResponse.json();
+            
+            if (keys && keys.length > 0 && keys[0].created_at) {
+                const date = new Date(keys[0].created_at);
+                const joinDate = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                document.getElementById('profileJoinDate').textContent = joinDate;
+            } else {
+                document.getElementById('profileJoinDate').textContent = '—';
+            }
+        } else {
+            document.getElementById('profileTier').textContent = 'FREE';
+            document.getElementById('profileJoinDate').textContent = '—';
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки профиля:', error);
+        document.getElementById('profileTier').textContent = 'FREE';
+        document.getElementById('profileJoinDate').textContent = '—';
+    }
 }
 
 // ========== СТАТУС ==========
