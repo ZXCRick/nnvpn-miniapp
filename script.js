@@ -15,278 +15,175 @@ const isAdmin = user && ADMIN_IDS.includes(user.id);
 let userData = null;
 let promoLinks = [];
 let allDataLoaded = false;
+let activeKeyData = null; // Добавляем глобальное хранилище для ключа
 window.fullKeyValue = '';
 
-// ========== ЗАСТАВКА (ждём загрузки данных) ==========
+// ========== ФУНКЦИЯ "ПРОГРЕВКИ" БД ==========
+async function warmupDatabase() {
+    console.log('🔥 Прогреваем базу данных...');
+    
+    // Делаем простой запрос к любой таблице, чтобы "разбудить" соединение
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?limit=1`, {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Prefer": "apikey=true"
+            }
+        });
+        
+        if (response.ok) {
+            console.log('✅ База данных прогрета');
+        } else {
+            console.log('⚠️ База ответила с ошибкой, но соединение установлено');
+        }
+    } catch (error) {
+        console.log('⚠️ Ошибка прогрева БД:', error);
+    }
+}
+
+// ========== ЗАСТАВКА ==========
 window.addEventListener('load', async function() {
-    await loadAllData();
-    setTimeout(() => {
-        document.getElementById('splashScreen').classList.add('hidden');
-        document.getElementById('app').classList.add('visible');
-    }, 500);
+    const splashScreen = document.getElementById('splashScreen');
+    const app = document.getElementById('app');
+    
+    try {
+        // ШАГ 1: Сначала прогреваем БД
+        await warmupDatabase();
+        
+        // ШАГ 2: Небольшая пауза для стабилизации соединения
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // ШАГ 3: Загружаем ВСЕ данные последовательно, но с гарантией загрузки
+        await loadAllDataSequentially();
+        
+        // ШАГ 4: Дополнительная проверка - если ключ не загрузился, пробуем ещё раз
+        if (!activeKeyData && user) {
+            console.log('🔄 Ключ не загрузился, пробуем ещё раз...');
+            await loadStatus();
+        }
+        
+        // Скрываем сплеш
+        if (splashScreen) {
+            splashScreen.classList.add('hidden');
+        }
+        if (app) {
+            app.classList.add('visible');
+        }
+        
+        console.log('✅ Все данные успешно загружены');
+        showToast('Данные загружены');
+        
+    } catch (error) {
+        console.error('❌ Ошибка загрузки:', error);
+        showToast('Ошибка загрузки данных');
+        
+        if (splashScreen) {
+            splashScreen.classList.add('hidden');
+        }
+        if (app) {
+            app.classList.add('visible');
+        }
+    }
 });
 
-// ========== ФУНКЦИЯ ЗАГРУЗКИ ВСЕХ ДАННЫХ ==========
-async function loadAllData() {
-    console.log('Начинаем загрузку всех данных...');
+// ========== ПОСЛЕДОВАТЕЛЬНАЯ ЗАГРУЗКА С ГАРАНТИЕЙ ==========
+async function loadAllDataSequentially() {
+    console.log('📥 Начинаем последовательную загрузку данных...');
     
+    // Сначала загружаем профиль (он нужен для остальных запросов)
     await loadProfile();
-    await loadStatus();
-    await loadHistory();
+    console.log('✓ Профиль загружен:', userData ? 'есть' : 'нет');
     
+    // Небольшая пауза между запросами для стабильности
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Затем загружаем статус (ключ)
+    await loadStatus();
+    console.log('✓ Статус загружен:', activeKeyData ? 'есть ключ' : 'нет ключа');
+    
+    // Пауза
+    await new Promise(resolve => setTimeout(resolve, 200));
+    
+    // Затем историю
+    await loadHistory();
+    console.log('✓ История загружена');
+    
+    // Для админа загружаем промо-ссылки
     if (isAdmin) {
+        await new Promise(resolve => setTimeout(resolve, 200));
         await loadPromoLinks();
+        console.log('✓ Промо-ссылки загружены');
     }
     
     allDataLoaded = true;
-    console.log('Все данные загружены');
 }
 
-// ========== ФУНКЦИИ ДЛЯ РАБОТЫ С SUPABASE ==========
+// ========== ОПТИМИЗИРОВАННЫЙ fetchUserProfile ==========
 async function fetchUserProfile(tgId) {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
-        headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-        }
-    });
-    const data = await response.json();
-    return data[0] || null;
-}
-
-async function fetchActiveKey(userId) {
-    const now = new Date().toISOString();
-    const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`,
-        {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
-            }
-        }
-    );
-    const data = await response.json();
-    return data[0] || null;
-}
-
-async function fetchUserPayments(userId) {
-    const response = await fetch(
-        `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`,
-        {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
-            }
-        }
-    );
-    return await response.json();
-}
-
-// ========== ПРОМО-ФУНКЦИИ ==========
-async function fetchPromoLinks() {
-    if (!isAdmin || !user) return [];
+    console.log(`🔍 Запрос профиля для tg_id: ${tgId}`);
     
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*`, {
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
-            }
-        });
-        const data = await response.json();
-        console.log('Промо-ссылки загружены:', data.length);
-        return data;
-    } catch (error) {
-        console.error('Ошибка загрузки:', error);
-        return [];
-    }
-}
-
-async function createPromoLinkInSupabase(name, userId) {
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links`, {
-            method: 'POST',
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
             headers: {
                 "apikey": SUPABASE_KEY,
                 "Authorization": `Bearer ${SUPABASE_KEY}`,
                 "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                name: name,
-                user_id: userId
-            })
-        });
-        return response.ok;
-    } catch (error) {
-        console.error('Ошибка создания:', error);
-        return false;
-    }
-}
-
-async function deletePromoLinkFromSupabase(id) {
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?id=eq.${id}`, {
-            method: 'DELETE',
-            headers: {
-                "apikey": SUPABASE_KEY,
-                "Authorization": `Bearer ${SUPABASE_KEY}`
             }
         });
-        return response.ok;
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`📦 Получен профиль: ${data[0] ? 'да' : 'нет'}`);
+        return data[0] || null;
     } catch (error) {
-        console.error('Ошибка удаления:', error);
-        return false;
+        console.error('❌ Ошибка fetchUserProfile:', error);
+        return null;
     }
 }
 
-async function loadPromoLinks() {
-    if (!isAdmin || !user) return;
-    
-    console.log('Загрузка промо-ссылок...');
+// ========== ОПТИМИЗИРОВАННЫЙ fetchActiveKey ==========
+async function fetchActiveKey(userId) {
+    console.log(`🔑 Запрос активного ключа для user_id: ${userId}`);
     
     try {
-        const links = await fetchPromoLinks();
-        console.log('Получено ссылок:', links.length);
+        const now = new Date().toISOString();
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`,
+            {
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`,
+                    "Content-Type": "application/json"
+                }
+            }
+        );
         
-        if (!links || links.length === 0) {
-            promoLinks = [];
-            renderPromoLinks();
-            updatePromoSummary();
-            return;
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
         }
         
-        promoLinks = links.map(link => ({
-            id: link.id,
-            name: link.name,
-            url: `https://t.me/vpnNoNamebot?start=promo_${link.name}`,
-            clicks: 0,
-            demos: 0,
-            sales: 0,
-            revenue: 0
-        }));
+        const data = await response.json();
+        console.log(`📦 Получен ключ: ${data[0] ? 'да' : 'нет'}`);
         
-        renderPromoLinks();
-        updatePromoSummary();
+        if (data[0]) {
+            console.log(`🔑 Тип ключа: ${data[0].type}, истекает: ${data[0].expires_at}`);
+        }
+        
+        return data[0] || null;
     } catch (error) {
-        console.error('Ошибка загрузки промо:', error);
-        promoLinks = [];
-        renderPromoLinks();
+        console.error('❌ Ошибка fetchActiveKey:', error);
+        return null;
     }
-}
-
-function renderPromoLinks() {
-    const container = document.getElementById('promoLinksList');
-    if (!container) return;
-    
-    if (promoLinks.length === 0) {
-        container.innerHTML = '<div class="empty-state"><p>Нет созданных ссылок</p></div>';
-        return;
-    }
-    
-    let html = '';
-    promoLinks.forEach(link => {
-        html += `
-            <div class="promo-link-item" data-id="${link.id}">
-                <div class="promo-link-header">
-                    <span class="promo-link-name">${link.name}</span>
-                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')">📋</button>
-                </div>
-                <div class="promo-link-url">${link.url}</div>
-                <div class="promo-link-stats">
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Клики</span>
-                        <span class="promo-stat-value">0</span>
-                    </div>
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Демо</span>
-                        <span class="promo-stat-value">0</span>
-                    </div>
-                    <div class="promo-stat">
-                        <span class="promo-stat-label">Конв</span>
-                        <span class="promo-stat-value">0%</span>
-                    </div>
-                </div>
-                <div class="promo-link-actions">
-                    <button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">Копировать</button>
-                    <button class="btn btn-outline" onclick="deletePromoLinkById('${link.id}')">Удалить</button>
-                </div>
-            </div>
-        `;
-    });
-    
-    container.innerHTML = html;
-}
-
-function updatePromoSummary() {
-    const totalClicks = promoLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
-    const totalDemos = promoLinks.reduce((sum, link) => sum + (link.demos || 0), 0);
-    const convRate = totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) : 0;
-    
-    document.getElementById('promoTotalClicks').textContent = totalClicks;
-    document.getElementById('promoTotalDemos').textContent = totalDemos;
-    document.getElementById('promoTotalConv').textContent = convRate + '%';
-}
-
-async function createPromoLink() {
-    if (!userData || !userData.id) {
-        console.log('userData не загружен, загружаем...');
-        await loadProfile();
-        if (!userData || !userData.id) {
-            showToast('Ошибка загрузки профиля');
-            return;
-        }
-    }
-    
-    const nameInput = document.getElementById('promoNameInput');
-    const name = nameInput.value.trim();
-    
-    if (!name) {
-        showToast('Введите название ссылки');
-        return;
-    }
-    
-    const existing = promoLinks.find(link => link.name === name);
-    if (existing) {
-        showToast('Такое название уже существует');
-        return;
-    }
-    
-    const success = await createPromoLinkInSupabase(name, userData.id);
-    
-    if (success) {
-        showToast('Ссылка создана');
-        nameInput.value = '';
-        await loadPromoLinks();
-    } else {
-        showToast('Ошибка создания ссылки');
-    }
-}
-
-async function deletePromoLinkById(id) {
-    if (confirm('Удалить эту ссылку?')) {
-        const success = await deletePromoLinkFromSupabase(id);
-        if (success) {
-            showToast('Ссылка удалена');
-            await loadPromoLinks();
-        } else {
-            showToast('Ошибка удаления');
-        }
-    }
-}
-
-function copyPromoUrl(url) {
-    navigator.clipboard.writeText(url);
-    showToast('Ссылка скопирована');
-}
-
-function refreshPromoStats() {
-    loadPromoLinks();
-    showToast('Статистика обновлена');
 }
 
 // ========== ЗАГРУЗКА ПРОФИЛЯ ==========
 async function loadProfile() {
     if (!user) {
+        console.log('⚠️ Нет пользователя Telegram');
         document.getElementById('profileName').textContent = 'Гость';
         document.getElementById('profileUsername').textContent = '—';
         document.getElementById('profileId').textContent = '—';
@@ -318,6 +215,7 @@ async function loadProfile() {
         if (userData) {
             document.getElementById('profileTier').textContent = userData.tier || 'FREE';
             
+            // Загружаем дату регистрации
             const keysResponse = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userData.id}&order=created_at.asc&limit=1&select=created_at`, {
                 headers: {
                     "apikey": SUPABASE_KEY,
@@ -338,30 +236,36 @@ async function loadProfile() {
             document.getElementById('profileJoinDate').textContent = '—';
         }
     } catch (error) {
-        console.error('Ошибка загрузки профиля:', error);
+        console.error('❌ Ошибка загрузки профиля:', error);
         document.getElementById('profileTier').textContent = 'FREE';
         document.getElementById('profileJoinDate').textContent = '—';
     }
 }
 
-// ========== СТАТУС ==========
+// ========== СТАТУС (СОХРАНЯЕМ В ГЛОБАЛЬНУЮ ПЕРЕМЕННУЮ) ==========
 async function loadStatus() {
     if (!user) return;
+    
+    console.log('📊 Загрузка статуса...');
     
     try {
         const userProfile = await fetchUserProfile(user.id);
         
         if (!userProfile) {
+            console.log('⚠️ Профиль не найден');
             document.getElementById('statusKey').textContent = '—';
             document.getElementById('statusTier').textContent = 'FREE';
             document.getElementById('statusDevices').textContent = '0/2';
             document.getElementById('statusExpires').textContent = '—';
             document.getElementById('keyStatus').textContent = '—';
             document.getElementById('statusProgress').style.width = '0%';
+            activeKeyData = null;
+            window.fullKeyValue = '';
             return;
         }
         
-        const activeKeyData = await fetchActiveKey(userProfile.id);
+        // Загружаем активный ключ
+        activeKeyData = await fetchActiveKey(userProfile.id);
         
         if (activeKeyData) {
             const fullKey = activeKeyData.key_hash;
@@ -373,6 +277,8 @@ async function loadStatus() {
             document.getElementById('statusDevices').textContent = `${activeKeyData.devices || 1}/2`;
             document.getElementById('statusExpires').textContent = activeKeyData.expires_at?.slice(0, 10) || '—';
             document.getElementById('keyStatus').textContent = 'Активен';
+            
+            console.log(`✅ Ключ загружен: ${activeKeyData.type}, истекает: ${activeKeyData.expires_at?.slice(0, 10)}`);
             
             if (activeKeyData.expires_at) {
                 const expires = new Date(activeKeyData.expires_at);
@@ -389,36 +295,42 @@ async function loadStatus() {
                 document.getElementById('statusProgress').style.width = progress + '%';
             }
         } else {
+            console.log('⚠️ Активный ключ не найден');
             document.getElementById('statusKey').textContent = '—';
             document.getElementById('statusTier').textContent = 'FREE';
             document.getElementById('statusDevices').textContent = '0/2';
             document.getElementById('statusExpires').textContent = '—';
             document.getElementById('keyStatus').textContent = '—';
             document.getElementById('statusProgress').style.width = '0%';
+            window.fullKeyValue = '';
         }
         
     } catch (error) {
-        console.error('Ошибка загрузки статуса:', error);
+        console.error('❌ Ошибка загрузки статуса:', error);
         showToast('Ошибка загрузки статуса');
     }
 }
 
-function refreshStatus() {
-    loadStatus();
-    showToast('Статус обновлён');
-}
-
+// ========== КОПИРОВАНИЕ КЛЮЧА (теперь данные уже должны быть загружены) ==========
 function copyKey() {
-    const fullKey = window.fullKeyValue;
-    if (fullKey && fullKey !== '—') {
-        navigator.clipboard.writeText(fullKey);
+    console.log('📋 Копирование ключа, fullKeyValue:', window.fullKeyValue);
+    
+    if (window.fullKeyValue && window.fullKeyValue !== '') {
+        navigator.clipboard.writeText(window.fullKeyValue);
         showToast('VLESS-ключ скопирован');
+        console.log('✅ Ключ скопирован');
     } else {
-        const shortKey = document.getElementById('statusKey').textContent;
-        if (shortKey && shortKey !== '—') {
-            navigator.clipboard.writeText(shortKey);
-            showToast('Ключ скопирован');
-        }
+        // Если по какой-то причине ключ ещё не загружен, пробуем загрузить снова
+        console.log('⚠️ Ключ не найден, пробуем перезагрузить...');
+        showToast('Загружаем ключ...');
+        loadStatus().then(() => {
+            if (window.fullKeyValue && window.fullKeyValue !== '') {
+                navigator.clipboard.writeText(window.fullKeyValue);
+                showToast('VLESS-ключ скопирован');
+            } else {
+                showToast('Ключ не найден');
+            }
+        });
     }
 }
 
