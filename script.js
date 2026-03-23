@@ -328,11 +328,24 @@ function refreshStatus() {
 }
 
 function copyKey() {
+    const vlessTemplate = `vless://${window.fullKeyValue}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NN-VPN`;
+    
     if (window.fullKeyValue && window.fullKeyValue !== '') {
-        navigator.clipboard.writeText(window.fullKeyValue);
+        navigator.clipboard.writeText(vlessTemplate);
         showToast('VLESS-ключ скопирован');
     } else {
-        showToast('Ключ не найден');
+        const shortKey = document.getElementById('statusKey').textContent;
+        if (shortKey && shortKey !== '—') {
+            if (activeKeyData && activeKeyData.key_hash) {
+                const fullVless = `vless://${activeKeyData.key_hash}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NN-VPN`;
+                navigator.clipboard.writeText(fullVless);
+                showToast('VLESS-ключ скопирован');
+            } else {
+                showToast('Ключ не найден');
+            }
+        } else {
+            showToast('Ключ не найден');
+        }
     }
 }
 
