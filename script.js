@@ -300,7 +300,6 @@ async function loadProfile() {
     document.getElementById('profileId').textContent = user.id;
     document.getElementById('profileUsername').textContent = user.username ? '@' + user.username : '—';
     
-    // Аватар
     const avatarImg = document.getElementById('avatarImage');
     const avatarPlaceholder = document.getElementById('avatarPlaceholder');
     
@@ -313,14 +312,12 @@ async function loadProfile() {
         avatarPlaceholder.textContent = initials || '?';
     }
     
-    // Загружаем данные из Supabase
     try {
         userData = await fetchUserProfile(user.id);
         
         if (userData) {
             document.getElementById('profileTier').textContent = userData.tier || 'FREE';
             
-            // Получаем дату первого ключа
             const keysResponse = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userData.id}&order=created_at.asc&limit=1&select=created_at`, {
                 headers: {
                     "apikey": SUPABASE_KEY,
@@ -542,36 +539,7 @@ if (isAdmin) {
 }
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-// Ждём полной загрузки страницы и WebApp
-window.addEventListener('load', async function() {
-    console.log('Загрузка страницы завершена, инициализация...');
-    
-    // Небольшая задержка для гарантии инициализации WebApp
-    setTimeout(async () => {
-        await loadAllData();
-        
-        // Активируем первую вкладку
-        const statusBtn = document.querySelector('[data-tab="status"]');
-        if (statusBtn) {
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            statusBtn.classList.add('active');
-            document.getElementById('tab-status').classList.add('active');
-        }
-        
-        // Скрываем заставку
-        setTimeout(() => {
-            const splash = document.getElementById('splashScreen');
-            const app = document.getElementById('app');
-            if (splash) splash.classList.add('hidden');
-            if (app) app.classList.add('visible');
-        }, 300);
-    }, 100);
-});
-
-// Функция загрузки всех данных (уже есть в вашем коде)
-async function loadAllData() {
-    console.log('Начинаем загрузку всех данных...');
-    
+document.addEventListener('DOMContentLoaded', async () => {
     await loadProfile();
     await loadStatus();
     await loadHistory();
@@ -580,12 +548,13 @@ async function loadAllData() {
         await loadPromoLinks();
     }
     
-    console.log('Все данные загружены');
-}
-
-// Удалите или закомментируйте старый блок инициализации:
-// document.addEventListener('DOMContentLoaded', async () => {
-//     await loadProfile();
-//     await loadStatus();
-//     ...
-// });
+    document.querySelector('[data-tab="status"]').classList.add('active');
+    document.getElementById('tab-status').classList.add('active');
+    
+    const modal = document.getElementById('paymentModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
+});
