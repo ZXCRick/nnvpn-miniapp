@@ -70,7 +70,7 @@ async function fetchPromoLinks() {
     
     try {
         // Загружаем ссылки и связанные клики
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*,clicks(*)`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?user_id=eq.${userData?.id}&select=*,clicks(*)`, {
             headers: {
                 "apikey": SUPABASE_KEY,
                 "Authorization": `Bearer ${SUPABASE_KEY}`
