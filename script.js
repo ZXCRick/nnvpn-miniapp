@@ -328,7 +328,8 @@ function refreshStatus() {
 }
 
 function copyKey() {
-    const vlessTemplate = `vless://${window.fullKeyValue}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NN-VPN`;
+    // Новый формат с TLS и портом 443
+    const vlessTemplate = `vless://${window.fullKeyValue}@2.27.63.85:443?encryption=none&security=tls&sni=2.27.63.85&allowInsecure=1&type=tcp#NN-VPN`;
     
     if (window.fullKeyValue && window.fullKeyValue !== '') {
         navigator.clipboard.writeText(vlessTemplate);
@@ -337,7 +338,7 @@ function copyKey() {
         const shortKey = document.getElementById('statusKey').textContent;
         if (shortKey && shortKey !== '—') {
             if (activeKeyData && activeKeyData.key_hash) {
-                const fullVless = `vless://${activeKeyData.key_hash}@2.27.63.85:8443?encryption=none&security=none&type=tcp#NN-VPN`;
+                const fullVless = `vless://${activeKeyData.key_hash}@2.27.63.85:443?encryption=none&security=tls&sni=2.27.63.85&allowInsecure=1&type=tcp#NN-VPN`;
                 navigator.clipboard.writeText(fullVless);
                 showToast('Ключ скопирован');
             } else {
