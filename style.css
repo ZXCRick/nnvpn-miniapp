@@ -1066,27 +1066,6 @@ body {
     position: relative;
 }
 
-.section-title {
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    position: relative;
-    display: inline-block;
-    margin-bottom: 0;
-}
-
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: -4px;
-    left: 0;
-    width: 40px;
-    height: 2px;
-    background: #27E0A8;
-    animation: titleLine 1.5s ease-in-out infinite;
-    z-index: 1;
-}
-
 @keyframes titleLine {
     0%, 100% { width: 40px; opacity: 0.5; }
     50% { width: 60px; opacity: 1; }
