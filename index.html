@@ -44,7 +44,7 @@
         <div class="welcome-banner animate-on-load">
             <div class="welcome-text">
                 <h1>Добро пожаловать, <span id="userName">Пользователь</span></h1>
-                <p>Мы заботимся о вашей анонимности</p>
+                <p>Ваш личный кабинет NN VPN</p>
             </div>
         </div>
 
@@ -59,7 +59,7 @@
                         <h2 id="profileName">Загрузка...</h2>
                         <span class="badge" id="profileTier">FREE</span>
                     </div>
-                    <div class="profile-id">ID: <span id="profileId">...</span></div>
+                    <div class="profile-id">🆔 ID: <span id="profileId">...</span></div>
                 </div>
             </div>
             <div class="profile-stats">
@@ -80,6 +80,7 @@
             <button class="nav-btn" data-tab="history">История</button>
             <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
             <button class="nav-btn admin-only" data-tab="promo">Промо</button>
+            <button class="nav-btn" data-tab="instructions">Инструкция</button>
         </nav>
 
         <div class="content">
@@ -87,7 +88,7 @@
                 <h2 class="section-title animate-on-load">Статус подписки</h2>
                 <div class="status-card animate-on-load">
                     <div class="status-header">
-                        <span class="status-label">Тариф</span>
+                        <span class="status-label">📊 Тариф</span>
                         <span class="status-value" id="statusTier">FREE</span>
                     </div>
                     <div class="progress-bar">
@@ -95,19 +96,19 @@
                     </div>
                     <div class="status-info">
                         <div class="info-row">
-                            <span class="info-label">Ключ</span>
+                            <span class="info-label">🔑 Ключ</span>
                             <span class="info-value" id="statusKey">—</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Статус</span>
+                            <span class="info-label">📆 Статус</span>
                             <span class="info-value" id="keyStatus">—</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Действует до</span>
+                            <span class="info-label">⏳ Действует до</span>
                             <span class="info-value" id="statusExpires">—</span>
                         </div>
                         <div class="info-row">
-                            <span class="info-label">Устройств</span>
+                            <span class="info-label">📱 Устройств</span>
                             <span class="info-value" id="statusDevices">0/2</span>
                         </div>
                     </div>
@@ -277,6 +278,53 @@
                     </div>
                 </div>
                 <button class="btn btn-outline animate-on-load" onclick="refreshPromoStats()">Обновить статистику</button>
+            </div>
+
+            <div class="tab" id="tab-instructions">
+                <h2 class="section-title animate-on-load">Инструкция</h2>
+                <div class="instructions-card animate-on-load">
+                    <h3>📱 iOS (Happ)</h3>
+                    <ol>
+                        <li>Скачайте <b>Happ</b> из App Store</li>
+                        <li>Откройте приложение → нажмите <b>+</b> → Import from Clipboard</li>
+                        <li>Вставьте скопированный ключ → Сохранить</li>
+                        <li>Включите переключатель</li>
+                    </ol>
+                    
+                    <h3>🤖 Android (Happ)</h3>
+                    <ol>
+                        <li>Скачайте <b>Happ</b> из Google Play или официального сайта</li>
+                        <li>Откройте → нажмите <b>+</b> → Импорт из буфера обмена</li>
+                        <li>Вставьте ключ → Сохранить</li>
+                        <li>Включите VPN</li>
+                    </ol>
+                    
+                    <h3>💻 Windows (Happ)</h3>
+                    <ol>
+                        <li>Скачайте <b>Happ</b> с официального сайта</li>
+                        <li>Откройте приложение → Сервер → Импорт из буфера обмена</li>
+                        <li>Вставьте ключ → Сохранить</li>
+                        <li>Включите подключение</li>
+                    </ol>
+                    
+                    <h3>🍎 macOS (Happ)</h3>
+                    <ol>
+                        <li>Скачайте <b>Happ</b> с официального сайта</li>
+                        <li>Нажмите на иконку в строке меню → Import Server from Clipboard</li>
+                        <li>Вставьте ключ → Сохранить</li>
+                        <li>Turn On</li>
+                    </ol>
+                    
+                    <div class="instruction-note">
+                        <h3>⚠️ Важно</h3>
+                        <p>• В настройках сервера включите <b>allowInsecure</b> (разрешить недоверенный сертификат)</p>
+                        <p>• SNI: <code>nnvpn.shop</code></p>
+                        <p>• Порт: <code>443</code></p>
+                        <p>• Протокол: <code>VLESS</code></p>
+                    </div>
+                    
+                    <button class="btn" onclick="copyTestKey()">Скопировать тестовый ключ</button>
+                </div>
             </div>
         </div>
     </div>
