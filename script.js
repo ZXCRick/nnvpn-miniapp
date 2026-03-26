@@ -644,6 +644,12 @@ function closeModal() {
     selectedPlan = null;
 }
 
+function copyTestKey() {
+    const testKey = "vless://68b94e1a-95a0-4459-a3a1-dc694efe1a44@nnvpn.shop:443?encryption=none&security=tls&sni=nnvpn.shop&type=tcp#NNVPN-TEST";
+    navigator.clipboard.writeText(testKey);
+    showToast('Тестовый ключ скопирован');
+}
+
 function payWith(method) {
     if (!selectedPlan) return;
     tg.MainButton.setText('Обработка...');
