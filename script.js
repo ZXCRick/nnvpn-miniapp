@@ -697,4 +697,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (e.target === this) closeModal();
         });
     }
+    // Обработчик для подсказки
+const helpTip = document.querySelector('.help-tip');
+if (helpTip) {
+    helpTip.addEventListener('click', showInstructions);
+}
+    
 });
