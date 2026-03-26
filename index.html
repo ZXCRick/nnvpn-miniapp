@@ -133,56 +133,54 @@
 <div class="tab" id="tab-plans">
     <h2 class="section-title">Тарифы</h2>
     <div class="plans">
+        <!-- 1 месяц -->
         <div class="plan-card" onclick="selectPlan('month')">
-            <h3>Стартовый</h3>
-            <div class="price">250 ₽</div>
-            <div class="period">1 месяц</div>
-            <ul>
+            <div class="plan-name">1 месяц</div>
+            <div class="plan-price">250 ₽</div>
+            <ul class="plan-features">
                 <li>2 устройства</li>
-                <li>Все серверы</li>
-                <li>Split Tunneling</li>
+                <li>Безлимитный трафик</li>
+                <li>Все сервера</li>
             </ul>
             <button class="btn">Выбрать</button>
         </div>
         
+        <!-- 3 месяца -->
         <div class="plan-card popular" onclick="selectPlan('quarter')">
-            <div class="popular-badge">−13%</div>
-            <h3>Оптимальный</h3>
-            <div class="price">650 ₽</div>
-            <div class="period">3 месяца <span class="old-price">750 ₽</span></div>
-            <ul>
+            <div class="plan-badge">−13%</div>
+            <div class="plan-name">3 месяца</div>
+            <div class="plan-price">650 ₽</div>
+            <div class="plan-old-price">750 ₽</div>
+            <ul class="plan-features">
                 <li>3 устройства</li>
-                <li>Все серверы</li>
-                <li>Split Tunneling</li>
-                <li>Приоритетный трафик</li>
+                <li>Безлимитный трафик</li>
+                <li>Все сервера</li>
             </ul>
             <button class="btn">Выбрать</button>
         </div>
         
-        <div class="plan-card" onclick="selectPlan('family')">
-            <div class="popular-badge">−20%</div>
-            <h3>Семейный</h3>
-            <div class="price">1200 ₽</div>
-            <div class="period">6 месяцев <span class="old-price">1500 ₽</span></div>
-            <ul>
-                <li>5 устройств</li>
-                <li>Все серверы</li>
-                <li>Split Tunneling</li>
-                <li>Семейный доступ</li>
+        <!-- 6 месяцев -->
+        <div class="plan-card" onclick="selectPlan('halfyear')">
+            <div class="plan-name">6 месяцев</div>
+            <div class="plan-price">1 200 ₽</div>
+            <div class="plan-old-price">1 500 ₽</div>
+            <ul class="plan-features">
+                <li>4 устройства</li>
+                <li>Безлимитный трафик</li>
+                <li>Все сервера</li>
             </ul>
             <button class="btn">Выбрать</button>
         </div>
         
+        <!-- 12 месяцев -->
         <div class="plan-card" onclick="selectPlan('year')">
-            <div class="popular-badge">−27%</div>
-            <h3>Годовой</h3>
-            <div class="price">2200 ₽</div>
-            <div class="period">12 месяцев <span class="old-price">3000 ₽</span></div>
-            <ul>
+            <div class="plan-name">12 месяцев</div>
+            <div class="plan-price">2 200 ₽</div>
+            <div class="plan-old-price">3 000 ₽</div>
+            <ul class="plan-features">
                 <li>5 устройств</li>
-                <li>Все серверы</li>
-                <li>Split Tunneling</li>
-                <li>Максимальная скидка</li>
+                <li>Безлимитный трафик</li>
+                <li>Все сервера</li>
             </ul>
             <button class="btn">Выбрать</button>
         </div>
