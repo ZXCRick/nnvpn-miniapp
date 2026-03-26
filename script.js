@@ -604,25 +604,21 @@ async function fetchStatsFromSupabase() {
         }
     });
     const users = await usersRes.json();
-    const totalUsers = users.length;
+    const totalUsers = users?.length || 0;
     
-    // Активные ключи (is_active = true) с дополнительными данными
+    // Активные ключи
     const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id,user_id,type,created_at,expires_at&is_active=eq.true`, {
         headers: {
             "apikey": SUPABASE_KEY,
             "Authorization": `Bearer ${SUPABASE_KEY}`
         }
     });
-    const activeKeys = await keysRes.json();
-    const activeCount = activeKeys.length;
+    const activeKeys = keysRes.json();
+    const activeCount = activeKeys?.length || 0;
     
     // Демо-ключи
-    const demoKeys = activeKeys.filter(k => k.type === 'demo');
+    const demoKeys = activeKeys?.filter(k => k.type === 'demo') || [];
     const demoCount = demoKeys.length;
-    
-    // Платные ключи
-    const paidKeys = activeKeys.filter(k => k.type !== 'demo');
-    const paidCount = paidKeys.length;
     
     // Платежи
     const paymentsRes = await fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status,user_id`, {
@@ -632,17 +628,15 @@ async function fetchStatsFromSupabase() {
         }
     });
     const payments = await paymentsRes.json();
-    
-    // Завершённые платежи
-    const completed = payments.filter(p => p.status === 'completed');
-    const totalRevenue = completed.reduce((sum, p) => sum + p.amount_rub, 0);
+    const completed = payments?.filter(p => p.status === 'completed') || [];
+    const totalRevenue = completed.reduce((sum, p) => sum + (p.amount_rub || 0), 0);
     const totalSales = completed.length;
     
     // Выручка за месяц
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     const monthPayments = completed.filter(p => new Date(p.created_at) > oneMonthAgo);
-    const monthRevenue = monthPayments.reduce((sum, p) => sum + p.amount_rub, 0);
+    const monthRevenue = monthPayments.reduce((sum, p) => sum + (p.amount_rub || 0), 0);
     
     // Средний чек
     const avgCheck = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
@@ -650,62 +644,74 @@ async function fetchStatsFromSupabase() {
     // Новые пользователи за неделю
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    const newUsers = users.filter(u => new Date(u.created_at) > oneWeekAgo);
+    const newUsers = users?.filter(u => new Date(u.created_at) > oneWeekAgo) || [];
     const newUsersCount = newUsers.length;
     
-    // Активные сегодня — пользователи, у которых есть ключ и он активен
-    // Используем 30% от активных ключей как приближение
+    // Активные сегодня (оценочно)
     const activeToday = Math.round(activeCount * 0.3);
     
-    // Конверсия: демо → платно
-    // Считаем, сколько из тех, у кого был демо, купили платный ключ
-    // Находим всех пользователей, у которых был демо-ключ
-    const allDemoKeys = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
-        headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-        }
-    });
-    const allDemoData = await allDemoKeys.json();
-    const demoUsers = [...new Set(allDemoData.map(k => k.user_id))];
+    // Демо → Платно
+    let demoToPaid = 0;
+    try {
+        const allDemoKeysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        const allDemoData = await allDemoKeysRes.json();
+        const demoUsers = [...new Set((allDemoData || []).map(k => k.user_id))];
+        const payingUsers = [...new Set(completed.map(p => p.user_id))];
+        const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
+        demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
+    } catch(e) {
+        demoToPaid = 0;
+    }
     
-    // Пользователи, которые купили платные ключи
-    const payingUsers = [...new Set(completed.map(p => p.user_id))];
-    const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
-    const demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
+    // Клики → Демо
+    let clickToDemo = 0;
+    try {
+        const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        const promoData = await promoRes.json();
+        const totalClicks = promoData?.length || 0;
+        const convertedClicks = (promoData || []).filter(c => c.converted_to_demo === true).length;
+        clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
+    } catch(e) {
+        clickToDemo = 0;
+    }
     
-    // Конверсия: клики по промо → демо
-    // Нужны данные из promo_clicks, пока считаем из активных демо-ключей
-    const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
-        headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-        }
-    });
-    const promoData = await promoRes.json();
-    const totalClicks = promoData.length;
-    const convertedClicks = promoData.filter(c => c.converted_to_demo === true).length;
-    const clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
+    // Отток
+    let churn = 0;
+    try {
+        const expiredKeysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&is_active=eq.false`, {
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`
+            }
+        });
+        const expiredKeys = await expiredKeysRes.json();
+        const expiredUsers = [...new Set((expiredKeys || []).map(k => k.user_id))];
+        const payingUsers = [...new Set(completed.map(p => p.user_id))];
+        const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
+        churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
+    } catch(e) {
+        churn = 0;
+    }
     
-    // Отток — пользователи, у которых истёк ключ и не продлили
-    // Находим все ключи, которые были активны, но истекли
-    const now = new Date().toISOString();
-    const expiredKeysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id,expires_at&is_active=eq.false`, {
-        headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-        }
-    });
-    const expiredKeys = await expiredKeysRes.json();
-    const expiredUsers = [...new Set(expiredKeys.map(k => k.user_id))];
-    
-    // Из них кто не купил новый ключ
-    const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
-    const churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
-    
-    // LTV = средний чек × среднее количество покупок на платящего пользователя
-    const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
-    const ltv = Math.round(avgCheck * avgPurchasesPerUser);
+    // LTV
+    let ltv = 0;
+    try {
+        const payingUsers = [...new Set(completed.map(p => p.user_id))];
+        const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
+        ltv = Math.round(avgCheck * avgPurchasesPerUser);
+    } catch(e) {
+        ltv = 0;
+    }
     
     return {
         totalUsers: formatNumber(totalUsers),
