@@ -1085,42 +1085,40 @@ body {
     animation: titleLine 1.5s ease-in-out infinite;
 }
 
-.help-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.help-icon {
+.help-button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    gap: 6px;
     background: #0B0E1A;
     border: 1px solid #1E222F;
     border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.help-button:hover {
+    border-color: #27E0A8;
+}
+
+.help-icon {
     font-size: 12px;
     font-weight: 500;
     color: #8A8C9A;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.help-icon:hover {
-    border-color: #27E0A8;
+.help-button:hover .help-icon {
     color: #27E0A8;
-    transform: scale(1.05);
 }
 
-.help-tip {
+.help-text {
     font-size: 11px;
     color: #8A8C9A;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
 }
 
-.help-tip:hover {
+.help-button:hover .help-text {
     color: #27E0A8;
 }
 
@@ -1130,7 +1128,7 @@ body {
 
 @keyframes blinkText {
     0%, 100% {
-        opacity: 0.3;
+        opacity: 0.4;
     }
     50% {
         opacity: 1;
