@@ -1034,3 +1034,26 @@ body {
     color: #27E0A8;
     transform: scale(1.1);
 }
+
+.help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: #1E222F;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #8A8C9A;
+    cursor: pointer;
+    margin-left: 8px;
+    transition: all 0.2s ease;
+    vertical-align: middle;
+}
+
+.help-icon:hover {
+    background: #27E0A8;
+    color: #0B0E1A;
+    transform: scale(1.05);
+}
