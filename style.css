@@ -450,12 +450,9 @@ body {
 .section-title {
     font-size: 16px;
     font-weight: 600;
-    margin-bottom: 16px;
     letter-spacing: -0.02em;
     position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: inline-block;
 }
 
 .section-title::after {
@@ -1106,7 +1103,6 @@ body {
     color: #8A8C9A;
     cursor: pointer;
     white-space: nowrap;
-    margin-left: 8px;
 }
 
 .blink {
@@ -1120,4 +1116,9 @@ body {
     50% {
         opacity: 1;
     }
+}
+
+@keyframes titleLine {
+    0%, 100% { width: 40px; opacity: 0.5; }
+    50% { width: 60px; opacity: 1; }
 }
