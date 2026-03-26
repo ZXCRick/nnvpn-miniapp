@@ -1092,41 +1092,6 @@ body {
     50% { width: 60px; opacity: 1; }
 }
 
-.help-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    cursor: pointer;
-    animation: slideInRight 0.5s ease-out;
-}
-
-@keyframes slideInRight {
-    0% {
-        opacity: 0;
-        transform: translateX(15px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-.help-wrapper:hover .help-question {
-    color: #27E0A8;
-}
-
-.help-wrapper:hover .help-badge {
-    border-color: #27E0A8;
-    color: #27E0A8;
-}
-
-.help-question {
-    font-size: 14px;
-    font-weight: 500;
-    color: #8A8C9A;
-    transition: color 0.2s ease;
-}
-
 .help-badge {
     display: inline-flex;
     align-items: center;
@@ -1137,7 +1102,8 @@ body {
     padding: 4px 10px;
     font-size: 11px;
     color: #8A8C9A;
-    transition: all 0.2s ease;
+    cursor: pointer;
+    white-space: nowrap;
 }
 
 .blink {
