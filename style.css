@@ -523,8 +523,9 @@ body {
     transform: translateY(-2px);
 }
 
+/* Убираем выделение для 3-месячного тарифа */
 .plan-card.popular {
-    border: 1px solid #27E0A8;
+    border: 1px solid #1E222F;
 }
 
 .plan-badge {
@@ -537,6 +538,12 @@ body {
     border-radius: 20px;
     font-size: 12px;
     font-weight: 500;
+}
+
+/* Специальный стиль для бейджа на тёмном фоне, если нужно */
+.plan-card .plan-badge {
+    background: #27E0A8;
+    color: #0B0E1A;
 }
 
 .plan-name {
