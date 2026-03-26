@@ -1092,13 +1092,11 @@ body {
     50% { width: 60px; opacity: 1; }
 }
 
-.help-trigger {
-    display: inline-flex;
+.help-wrapper {
+    display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
     animation: slideInRight 0.5s ease-out;
 }
 
@@ -1113,27 +1111,33 @@ body {
     }
 }
 
-.help-trigger:hover {
-    transform: translateX(-2px);
+.help-wrapper:hover .help-question {
+    color: #27E0A8;
 }
 
-.help-icon {
+.help-wrapper:hover .help-badge {
+    border-color: #27E0A8;
+    color: #27E0A8;
+}
+
+.help-question {
     font-size: 14px;
     font-weight: 500;
     color: #8A8C9A;
+    transition: color 0.2s ease;
 }
 
-.help-trigger:hover .help-icon {
-    color: #27E0A8;
-}
-
-.help-text {
+.help-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: #0B0E1A;
+    border: 1px solid #1E222F;
+    border-radius: 6px;
+    padding: 4px 10px;
     font-size: 11px;
     color: #8A8C9A;
-}
-
-.help-trigger:hover .help-text {
-    color: #27E0A8;
+    transition: all 0.2s ease;
 }
 
 .blink {
@@ -1142,7 +1146,7 @@ body {
 
 @keyframes blinkText {
     0%, 100% {
-        opacity: 0.4;
+        opacity: 0.5;
     }
     50% {
         opacity: 1;
