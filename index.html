@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Заставка с лого -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">
             <div class="logo-circle">
@@ -30,9 +29,7 @@
         <div class="loading-text">Загружаем данные...</div>
     </div>
 
-    <!-- Основной контент -->
     <div class="app" id="app">
-        <!-- Хедер -->
         <div class="header">
             <div class="logo">
                 <span class="logo-icon">⚡</span>
@@ -44,7 +41,6 @@
             </div>
         </div>
 
-        <!-- Приветственный баннер -->
         <div class="welcome-banner animate-on-load">
             <div class="welcome-text">
                 <h1>Добро пожаловать, <span id="userName">Пользователь</span></h1>
@@ -52,7 +48,6 @@
             </div>
         </div>
 
-        <!-- Профиль -->
         <div class="profile-section animate-on-load">
             <div class="profile-header">
                 <div class="profile-avatar" id="profileAvatar">
@@ -67,7 +62,6 @@
                     <div class="profile-id">ID: <span id="profileId">...</span></div>
                 </div>
             </div>
-            
             <div class="profile-stats">
                 <div class="stat-item">
                     <div class="stat-label">Username</div>
@@ -80,7 +74,6 @@
             </div>
         </div>
 
-        <!-- Навигация -->
         <nav class="nav animate-on-load">
             <button class="nav-btn active" data-tab="status">Статус</button>
             <button class="nav-btn" data-tab="plans">Тарифы</button>
@@ -89,9 +82,7 @@
             <button class="nav-btn admin-only" data-tab="promo">Промо</button>
         </nav>
 
-        <!-- Контент -->
         <div class="content">
-            <!-- Статус -->
             <div class="tab active" id="tab-status">
                 <h2 class="section-title animate-on-load">Статус подписки</h2>
                 <div class="status-card animate-on-load">
@@ -99,11 +90,9 @@
                         <span class="status-label">Тариф</span>
                         <span class="status-value" id="statusTier">FREE</span>
                     </div>
-                    
                     <div class="progress-bar">
                         <div class="progress-fill" id="statusProgress" style="width: 0%"></div>
                     </div>
-                    
                     <div class="status-info">
                         <div class="info-row">
                             <span class="info-label">Ключ</span>
@@ -122,73 +111,63 @@
                             <span class="info-value" id="statusDevices">0/2</span>
                         </div>
                     </div>
-                    
                     <button class="btn" onclick="copyKey()">Копировать ключ</button>
                 </div>
                 <button class="btn btn-outline animate-on-load" onclick="refreshStatus()">Обновить</button>
             </div>
 
-<!-- Тарифы -->
-<div class="tab" id="tab-plans">
-    <h2 class="section-title">Тарифы</h2>
-    <div class="plans">
-        <!-- 1 месяц -->
-        <div class="plan-card" onclick="selectPlan('month')">
-            <div class="plan-name">1 месяц</div>
-            <div class="plan-price">250 ₽</div>
-            <ul class="plan-features">
-                <li>2 устройства</li>
-                <li>Безлимитный трафик</li>
-                <li>Все сервера</li>
-            </ul>
-            <button class="btn">Выбрать</button>
-        </div>
-        
-        <!-- 3 месяца -->
-        <div class="plan-card" onclick="selectPlan('quarter')">
-            <div class="plan-badge">−13%</div>
-            <div class="plan-name">3 месяца</div>
-            <div class="plan-price">650 ₽</div>
-            <div class="plan-old-price">750 ₽</div>
-            <ul class="plan-features">
-                <li>3 устройства</li>
-                <li>Безлимитный трафик</li>
-                <li>Все сервера</li>
-            </ul>
-            <button class="btn">Выбрать</button>
-        </div>
-        
-        <!-- 6 месяцев -->
-        <div class="plan-card" onclick="selectPlan('halfyear')">
-            <div class="plan-badge">−20%</div>
-            <div class="plan-name">6 месяцев</div>
-            <div class="plan-price">1 200 ₽</div>
-            <div class="plan-old-price">1 500 ₽</div>
-            <ul class="plan-features">
-                <li>4 устройства</li>
-                <li>Безлимитный трафик</li>
-                <li>Все сервера</li>
-            </ul>
-            <button class="btn">Выбрать</button>
-        </div>
-        
-        <!-- 12 месяцев -->
-        <div class="plan-card" onclick="selectPlan('year')">
-            <div class="plan-badge">−27%</div>
-            <div class="plan-name">12 месяцев</div>
-            <div class="plan-price">2 200 ₽</div>
-            <div class="plan-old-price">3 000 ₽</div>
-            <ul class="plan-features">
-                <li>5 устройств</li>
-                <li>Безлимитный трафик</li>
-                <li>Все сервера</li>
-            </ul>
-            <button class="btn">Выбрать</button>
-        </div>
-    </div>
-</div>
+            <div class="tab" id="tab-plans">
+                <h2 class="section-title">Тарифы</h2>
+                <div class="plans">
+                    <div class="plan-card" onclick="selectPlan('month')">
+                        <div class="plan-name">1 месяц</div>
+                        <div class="plan-price">250 ₽</div>
+                        <ul class="plan-features">
+                            <li>2 устройства</li>
+                            <li>Безлимитный трафик</li>
+                            <li>Все сервера</li>
+                        </ul>
+                        <button class="btn">Выбрать</button>
+                    </div>
+                    <div class="plan-card" onclick="selectPlan('quarter')">
+                        <div class="plan-badge">−13%</div>
+                        <div class="plan-name">3 месяца</div>
+                        <div class="plan-price">650 ₽</div>
+                        <div class="plan-old-price">750 ₽</div>
+                        <ul class="plan-features">
+                            <li>3 устройства</li>
+                            <li>Безлимитный трафик</li>
+                            <li>Все сервера</li>
+                        </ul>
+                        <button class="btn">Выбрать</button>
+                    </div>
+                    <div class="plan-card" onclick="selectPlan('halfyear')">
+                        <div class="plan-badge">−20%</div>
+                        <div class="plan-name">6 месяцев</div>
+                        <div class="plan-price">1 200 ₽</div>
+                        <div class="plan-old-price">1 500 ₽</div>
+                        <ul class="plan-features">
+                            <li>4 устройства</li>
+                            <li>Безлимитный трафик</li>
+                            <li>Все сервера</li>
+                        </ul>
+                        <button class="btn">Выбрать</button>
+                    </div>
+                    <div class="plan-card" onclick="selectPlan('year')">
+                        <div class="plan-badge">−27%</div>
+                        <div class="plan-name">12 месяцев</div>
+                        <div class="plan-price">2 200 ₽</div>
+                        <div class="plan-old-price">3 000 ₽</div>
+                        <ul class="plan-features">
+                            <li>5 устройств</li>
+                            <li>Безлимитный трафик</li>
+                            <li>Все сервера</li>
+                        </ul>
+                        <button class="btn">Выбрать</button>
+                    </div>
+                </div>
+            </div>
 
-            <!-- История -->
             <div class="tab" id="tab-history">
                 <h2 class="section-title animate-on-load">История</h2>
                 <div class="history-list animate-on-load">
@@ -198,83 +177,76 @@
                 </div>
             </div>
 
-            <!-- Статистика (админ) -->
             <div class="tab" id="tab-stats">
                 <h2 class="section-title animate-on-load">Статистика</h2>
-                
                 <div class="stats-section">
                     <h3 class="stats-subtitle animate-on-load">Пользователи</h3>
                     <div class="stats-grid">
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Всего</div>
-                            <div class="stat-value" id="statsTotalUsers">1 234</div>
+                            <div class="stat-value" id="statsTotalUsers">0</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Активных сегодня</div>
-                            <div class="stat-value" id="statsActiveToday">345</div>
+                            <div class="stat-value" id="statsActiveToday">0</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Новых за неделю</div>
-                            <div class="stat-value" id="statsNewWeek">123</div>
+                            <div class="stat-value" id="statsNewWeek">0</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Демо-ключей</div>
-                            <div class="stat-value" id="statsDemoKeys">456</div>
+                            <div class="stat-value" id="statsDemoKeys">0</div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="stats-section">
                     <h3 class="stats-subtitle animate-on-load">Финансы</h3>
                     <div class="stats-grid">
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Всего продаж</div>
-                            <div class="stat-value" id="statsTotalSales">789</div>
+                            <div class="stat-value" id="statsTotalSales">0</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Выручка</div>
-                            <div class="stat-value" id="statsTotalRevenue">187 250 ₽</div>
+                            <div class="stat-value" id="statsTotalRevenue">0 ₽</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">За месяц</div>
-                            <div class="stat-value" id="statsMonthRevenue">45 600 ₽</div>
+                            <div class="stat-value" id="statsMonthRevenue">0 ₽</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Средний чек</div>
-                            <div class="stat-value" id="statsAvgCheck">237 ₽</div>
+                            <div class="stat-value" id="statsAvgCheck">0 ₽</div>
                         </div>
                     </div>
                 </div>
-                
                 <div class="stats-section">
                     <h3 class="stats-subtitle animate-on-load">Конверсия</h3>
                     <div class="stats-grid">
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Клики → Демо</div>
-                            <div class="stat-value" id="statsClickToDemo">24%</div>
+                            <div class="stat-value" id="statsClickToDemo">0%</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Демо → Покупка</div>
-                            <div class="stat-value" id="statsDemoToPaid">12%</div>
+                            <div class="stat-value" id="statsDemoToPaid">0%</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">Отказов</div>
-                            <div class="stat-value" id="statsChurn">5.6%</div>
+                            <div class="stat-value" id="statsChurn">0%</div>
                         </div>
                         <div class="stat-card animate-on-load">
                             <div class="stat-label">LTV</div>
-                            <div class="stat-value" id="statsLTV">1 450 ₽</div>
+                            <div class="stat-value" id="statsLTV">0 ₽</div>
                         </div>
                     </div>
                 </div>
-                
                 <button class="btn animate-on-load" onclick="refreshStats()">Обновить</button>
             </div>
 
-            <!-- ПРОМО (для пиарщика) -->
             <div class="tab" id="tab-promo">
                 <h2 class="section-title animate-on-load">Промо-кампании</h2>
-                
                 <div class="promo-summary animate-on-load">
                     <div class="summary-card">
                         <div class="summary-label">Всего кликов</div>
@@ -289,7 +261,6 @@
                         <div class="summary-value" id="promoTotalConv">0%</div>
                     </div>
                 </div>
-                
                 <div class="promo-create animate-on-load">
                     <h3 class="promo-subtitle">Новая ссылка</h3>
                     <div class="create-form">
@@ -297,7 +268,6 @@
                         <button class="btn" id="createPromoBtn" onclick="createPromoLink()">Создать</button>
                     </div>
                 </div>
-                
                 <div class="promo-links animate-on-load">
                     <h3 class="promo-subtitle">Промо ссылки</h3>
                     <div id="promoLinksList">
@@ -306,29 +276,24 @@
                         </div>
                     </div>
                 </div>
-                
                 <button class="btn btn-outline animate-on-load" onclick="refreshPromoStats()">Обновить статистику</button>
             </div>
         </div>
     </div>
 
-    <!-- Модалка оплаты -->
     <div class="modal" id="paymentModal">
         <div class="modal-content">
             <h3 id="modalTitle">Оплата</h3>
             <p id="modalDescription"></p>
-            
             <div class="payment-methods">
                 <button class="payment-btn" onclick="payWith('card')">Карта РФ</button>
                 <button class="payment-btn" onclick="payWith('sbp')">СБП</button>
                 <button class="payment-btn" onclick="payWith('yoomoney')">ЮMoney</button>
             </div>
-            
             <button class="btn btn-danger" onclick="closeModal()">Отмена</button>
         </div>
     </div>
 
-    <!-- Уведомления -->
     <div class="toast" id="toast"></div>
 
     <script src="script.js"></script>
