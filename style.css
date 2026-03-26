@@ -450,10 +450,12 @@ body {
 .section-title {
     font-size: 16px;
     font-weight: 600;
+    margin-bottom: 16px;
     letter-spacing: -0.02em;
     position: relative;
-    display: inline-block;
-    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .section-title::after {
@@ -465,7 +467,6 @@ body {
     height: 2px;
     background: #27E0A8;
     animation: titleLine 1.5s ease-in-out infinite;
-    z-index: 1;
 }
 
 .btn {
@@ -1105,6 +1106,7 @@ body {
     color: #8A8C9A;
     cursor: pointer;
     white-space: nowrap;
+    margin-left: 8px;
 }
 
 .blink {
