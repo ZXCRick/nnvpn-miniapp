@@ -37,6 +37,7 @@ window.addEventListener('load', async function() {
     }
 });
 
+// ========== БЕЗОПАСНОЕ ОБНОВЛЕНИЕ DOM ==========
 function safeSetText(elementId, text) {
     const element = document.getElementById(elementId);
     if (element) element.textContent = text;
@@ -52,6 +53,7 @@ function safeSetStyle(elementId, property, value) {
     if (element) element.style[property] = value;
 }
 
+// ========== ЗАГРУЗКА ДАННЫХ ==========
 async function loadAllDataWithTimeout(timeoutMs = 10000) {
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Таймаут')), timeoutMs));
     const loadPromise = (async () => {
@@ -67,6 +69,7 @@ async function loadAllDataWithTimeout(timeoutMs = 10000) {
     await Promise.race([loadPromise, timeoutPromise]);
 }
 
+// ========== ФУНКЦИИ SUPABASE ==========
 async function fetchUserProfile(tgId) {
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
@@ -111,6 +114,7 @@ async function fetchUserPayments(userId) {
     }
 }
 
+// ========== ПРОФИЛЬ ==========
 async function loadProfile() {
     if (!user) {
         safeSetText('profileName', 'Гость');
@@ -164,6 +168,7 @@ async function loadProfile() {
     }
 }
 
+// ========== СТАТУС ==========
 async function loadStatus() {
     if (!user) return;
     
@@ -248,7 +253,10 @@ async function loadStatus() {
     }
 }
 
-function refreshStatus() { loadStatus(); }
+function refreshStatus() { 
+    loadStatus(); 
+    showToast('Статус обновлён');
+}
 
 function copyKey() {
     const domain = "nnvpn.shop";
@@ -268,6 +276,7 @@ function copyKey() {
     }
 }
 
+// ========== ИСТОРИЯ ==========
 async function loadHistory() {
     if (!user) return;
     const userProfile = await fetchUserProfile(user.id);
@@ -291,8 +300,7 @@ async function loadHistory() {
     `).join('');
 }
 
-// ========== ПРОМО (без изменений, но сокращён для длины) ==========
-// (оставь существующий код промо-ссылок, он работает)
+// ========== ПРОМО-ССЫЛКИ ==========
 async function fetchPromoLinks() {
     if (!isAdmin || !user) return [];
     try {
@@ -304,13 +312,19 @@ async function fetchPromoLinks() {
         return [];
     }
 }
+
 async function loadPromoLinks() {
     if (!isAdmin || !user) return;
     try {
         const links = await fetchPromoLinks();
         promoLinks = links.map(link => ({
-            id: link.id, name: link.name, url: `https://t.me/vpnNoNamebot?start=promo_${link.name}`,
-            clicks: 0, demos: 0, sales: 0, revenue: 0
+            id: link.id,
+            name: link.name,
+            url: `https://t.me/vpnNoNamebot?start=promo_${link.name}`,
+            clicks: 0,
+            demos: 0,
+            sales: 0,
+            revenue: 0
         }));
         renderPromoLinks();
         updatePromoSummary();
@@ -319,14 +333,145 @@ async function loadPromoLinks() {
         renderPromoLinks();
     }
 }
-function renderPromoLinks() { /* оставь существующий */ }
-function updatePromoSummary() { /* оставь существующий */ }
-async function createPromoLink() { /* оставь существующий */ }
-async function deletePromoLinkById(id) { /* оставь существующий */ }
-function copyPromoUrl(url) { /* оставь существующий */ }
-function refreshPromoStats() { loadPromoLinks(); }
 
-// ========== СТАТИСТИКА (ИСПРАВЛЕНА) ==========
+function renderPromoLinks() {
+    const container = document.getElementById('promoLinksList');
+    if (!container) return;
+    
+    if (promoLinks.length === 0) {
+        container.innerHTML = '<div class="empty-state"><p>Нет созданных ссылок</p></div>';
+        return;
+    }
+    
+    let html = '';
+    promoLinks.forEach(link => {
+        html += `
+            <div class="promo-link-item" data-id="${link.id}">
+                <div class="promo-link-header">
+                    <span class="promo-link-name">${link.name}</span>
+                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')">📋</button>
+                </div>
+                <div class="promo-link-url">${link.url}</div>
+                <div class="promo-link-stats">
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Клики</span>
+                        <span class="promo-stat-value">0</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Демо</span>
+                        <span class="promo-stat-value">0</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Конв</span>
+                        <span class="promo-stat-value">0%</span>
+                    </div>
+                </div>
+                <div class="promo-link-actions">
+                    <button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">Копировать</button>
+                    <button class="btn btn-outline" onclick="deletePromoLinkById('${link.id}')">Удалить</button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
+function updatePromoSummary() {
+    const totalClicks = promoLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
+    const totalDemos = promoLinks.reduce((sum, link) => sum + (link.demos || 0), 0);
+    const convRate = totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) : 0;
+    
+    safeSetText('promoTotalClicks', totalClicks.toString());
+    safeSetText('promoTotalDemos', totalDemos.toString());
+    safeSetText('promoTotalConv', convRate + '%');
+}
+
+async function createPromoLink() {
+    if (!userData || !userData.id) {
+        await loadProfile();
+        if (!userData || !userData.id) {
+            showToast('Ошибка загрузки профиля');
+            return;
+        }
+    }
+    
+    const nameInput = document.getElementById('promoNameInput');
+    if (!nameInput) return;
+    
+    const name = nameInput.value.trim();
+    
+    if (!name) {
+        showToast('Введите название ссылки');
+        return;
+    }
+    
+    const existing = promoLinks.find(link => link.name === name);
+    if (existing) {
+        showToast('Такое название уже существует');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links`, {
+            method: 'POST',
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                user_id: userData.id
+            })
+        });
+        
+        if (response.ok) {
+            showToast('Ссылка создана');
+            nameInput.value = '';
+            await loadPromoLinks();
+        } else {
+            showToast('Ошибка создания ссылки');
+        }
+    } catch (error) {
+        console.error('Ошибка создания:', error);
+        showToast('Ошибка создания ссылки');
+    }
+}
+
+async function deletePromoLinkById(id) {
+    if (confirm('Удалить эту ссылку?')) {
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            
+            if (response.ok) {
+                showToast('Ссылка удалена');
+                await loadPromoLinks();
+            } else {
+                showToast('Ошибка удаления');
+            }
+        } catch (error) {
+            console.error('Ошибка удаления:', error);
+            showToast('Ошибка удаления');
+        }
+    }
+}
+
+function copyPromoUrl(url) {
+    navigator.clipboard.writeText(url);
+    showToast('Ссылка скопирована');
+}
+
+function refreshPromoStats() {
+    loadPromoLinks();
+}
+
+// ========== СТАТИСТИКА ==========
 async function loadStats() {
     if (!isAdmin) return;
     try {
@@ -384,7 +529,6 @@ async function fetchStatsFromSupabase() {
         
         const activeToday = Math.round(activeCount * 0.3);
         
-        // Демо → Платно
         let demoToPaid = 0;
         const allDemoRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
             headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
@@ -395,7 +539,6 @@ async function fetchStatsFromSupabase() {
         const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
         demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
         
-        // Клики → Демо
         let clickToDemo = 0;
         const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
             headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
@@ -405,7 +548,6 @@ async function fetchStatsFromSupabase() {
         const convertedClicks = (promoData || []).filter(c => c.converted_to_demo === true).length;
         clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
         
-        // Отток
         let churn = 0;
         const expiredRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&is_active=eq.false`, {
             headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
@@ -415,7 +557,6 @@ async function fetchStatsFromSupabase() {
         const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
         churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
         
-        // LTV
         let ltv = 0;
         const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
         ltv = Math.round(avgCheck * avgPurchasesPerUser);
@@ -454,6 +595,12 @@ function formatMoney(amount) {
     return amount + ' ₽';
 }
 
+function refreshStats() { 
+    loadStats(); 
+    showToast('Статистика обновлена');
+}
+
+// ========== УВЕДОМЛЕНИЯ ==========
 function showToast(text, duration = 3000) {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -462,6 +609,7 @@ function showToast(text, duration = 3000) {
     setTimeout(() => toast.classList.remove('show'), duration);
 }
 
+// ========== ТАРИФЫ ==========
 const plans = {
     month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
     quarter: { name: '3 месяца', price: 650, type: 'PREMIUM', devices: 3, days: 90 },
@@ -498,6 +646,7 @@ function payWith(method) {
     }, 1000);
 }
 
+// ========== НАВИГАЦИЯ ==========
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -521,11 +670,23 @@ if (isAdmin) {
     });
 }
 
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', async () => {
     const defaultTab = document.querySelector('[data-tab="status"]');
     if (defaultTab) defaultTab.classList.add('active');
+    
     const defaultTabContent = document.getElementById('tab-status');
     if (defaultTabContent) defaultTabContent.classList.add('active');
+    
+    await loadProfile();
+    await loadStatus();
+    await loadHistory();
+    
+    if (isAdmin) {
+        await loadPromoLinks();
+        await loadStats();
+    }
+    
     const modal = document.getElementById('paymentModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
