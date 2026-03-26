@@ -1021,3 +1021,16 @@ body {
     border-radius: 4px;
     font-family: monospace;
 }
+
+.help-icon {
+    font-size: 14px;
+    cursor: pointer;
+    margin-left: 8px;
+    color: #8A8C9A;
+    transition: all 0.2s ease;
+}
+
+.help-icon:hover {
+    color: #27E0A8;
+    transform: scale(1.1);
+}
