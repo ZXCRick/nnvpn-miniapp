@@ -945,6 +945,7 @@ body {
 
 .tab {
     display: none;
+    padding-top: 8px; 
 }
 
 .tab.active {
