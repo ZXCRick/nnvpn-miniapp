@@ -1092,45 +1092,38 @@ body {
     50% { width: 60px; opacity: 1; }
 }
 
-.help-button {
+.help-trigger {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: #0B0E1A;
-    border: 1px solid #1E222F;
-    border-radius: 6px;
-    padding: 4px 10px;
+    gap: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
-    animation: helpAppear 0.4s ease-out;
-    z-index: 2;
-    position: relative;
+    animation: slideInRight 0.5s ease-out;
 }
 
-@keyframes helpAppear {
+@keyframes slideInRight {
     0% {
         opacity: 0;
-        transform: scale(0.9);
+        transform: translateX(15px);
     }
     100% {
         opacity: 1;
-        transform: scale(1);
+        transform: translateX(0);
     }
 }
 
-.help-button:hover {
-    border-color: #27E0A8;
+.help-trigger:hover {
+    transform: translateX(-2px);
 }
 
 .help-icon {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: #8A8C9A;
 }
 
-.help-button:hover .help-icon {
+.help-trigger:hover .help-icon {
     color: #27E0A8;
 }
 
@@ -1139,7 +1132,7 @@ body {
     color: #8A8C9A;
 }
 
-.help-button:hover .help-text {
+.help-trigger:hover .help-text {
     color: #27E0A8;
 }
 
