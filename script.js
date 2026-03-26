@@ -2,43 +2,54 @@ let tg = window.Telegram.WebApp;
 tg.expand();
 tg.ready();
 
+// ========== НАСТРОЙКИ SUPABASE ==========
 const SUPABASE_URL = "https://qgbnjkbtrfyahkxjrokh.supabase.co";
 const SUPABASE_KEY = "sb_publishable_Yqsx9Hh6d4tl15XVRSvFhw_LyhxLKB4";
 
+// ========== ДАННЫЕ ПОЛЬЗОВАТЕЛЯ ==========
 const user = tg.initDataUnsafe?.user;
 const ADMIN_IDS = [913301430, 706826056];
 const isAdmin = user && ADMIN_IDS.includes(user.id);
 
+// ========== ХРАНИЛИЩЕ ==========
 let userData = null;
 let promoLinks = [];
+let allDataLoaded = false;
 let activeKeyData = null;
 window.fullKeyValue = '';
 
+// ========== ЗАСТАВКА ==========
 window.addEventListener('load', async function() {
     try {
         await loadAllDataWithTimeout();
-        document.getElementById('splashScreen')?.classList.add('hidden');
-        document.getElementById('app')?.classList.add('visible');
+        
+        const splashScreen = document.getElementById('splashScreen');
+        const app = document.getElementById('app');
+        
+        if (splashScreen) splashScreen.classList.add('hidden');
+        if (app) app.classList.add('visible');
     } catch (error) {
         console.error('Ошибка загрузки:', error);
-        document.getElementById('splashScreen')?.classList.add('hidden');
-        document.getElementById('app')?.classList.add('visible');
+        const splashScreen = document.getElementById('splashScreen');
+        const app = document.getElementById('app');
+        if (splashScreen) splashScreen.classList.add('hidden');
+        if (app) app.classList.add('visible');
     }
 });
 
-function safeSetText(id, text) {
-    const el = document.getElementById(id);
-    if (el) el.textContent = text;
+function safeSetText(elementId, text) {
+    const element = document.getElementById(elementId);
+    if (element) element.textContent = text;
 }
 
-function safeSetHtml(id, html) {
-    const el = document.getElementById(id);
-    if (el) el.innerHTML = html;
+function safeSetHtml(elementId, html) {
+    const element = document.getElementById(elementId);
+    if (element) element.innerHTML = html;
 }
 
-function safeSetStyle(id, prop, val) {
-    const el = document.getElementById(id);
-    if (el) el.style[prop] = val;
+function safeSetStyle(elementId, property, value) {
+    const element = document.getElementById(elementId);
+    if (element) element.style[property] = value;
 }
 
 async function loadAllDataWithTimeout(timeoutMs = 10000) {
@@ -51,41 +62,53 @@ async function loadAllDataWithTimeout(timeoutMs = 10000) {
             await loadPromoLinks();
             await loadStats();
         }
+        allDataLoaded = true;
     })();
     await Promise.race([loadPromise, timeoutPromise]);
 }
 
 async function fetchUserProfile(tgId) {
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/users?tg_id=eq.${tgId}&select=*`, {
             headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
         });
-        if (!res.ok) return null;
-        const data = await res.json();
+        if (!response.ok) return null;
+        const data = await response.json();
         return data[0] || null;
-    } catch (e) { return null; }
+    } catch (error) {
+        console.error('Ошибка fetchUserProfile:', error);
+        return null;
+    }
 }
 
 async function fetchActiveKey(userId) {
     try {
         const now = new Date().toISOString();
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        if (!res.ok) return null;
-        const data = await res.json();
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userId}&is_active=eq.true&expires_at=gt.${now}&select=*`,
+            { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!response.ok) return null;
+        const data = await response.json();
         return data[0] || null;
-    } catch (e) { return null; }
+    } catch (error) {
+        console.error('Ошибка fetchActiveKey:', error);
+        return null;
+    }
 }
 
 async function fetchUserPayments(userId) {
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        if (!res.ok) return [];
-        return await res.json();
-    } catch (e) { return []; }
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`,
+            { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
+        );
+        if (!response.ok) return [];
+        return await response.json();
+    } catch (error) {
+        console.error('Ошибка fetchUserPayments:', error);
+        return [];
+    }
 }
 
 async function loadProfile() {
@@ -102,9 +125,10 @@ async function loadProfile() {
     safeSetText('userName', user.first_name || 'Пользователь');
     safeSetText('profileId', user.id.toString());
     safeSetText('profileUsername', user.username ? '@' + user.username : '—');
-
+    
     const avatarImg = document.getElementById('avatarImage');
     const avatarPlaceholder = document.getElementById('avatarPlaceholder');
+    
     if (user.photo_url && avatarImg && avatarPlaceholder) {
         avatarImg.src = user.photo_url;
         avatarImg.style.display = 'block';
@@ -113,24 +137,28 @@ async function loadProfile() {
         const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '');
         avatarPlaceholder.textContent = initials || '?';
     }
-
+    
     try {
         userData = await fetchUserProfile(user.id);
         if (userData) {
             safeSetText('profileTier', userData.tier || 'FREE');
-            const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userData.id}&order=created_at.asc&limit=1&select=created_at`, {
+            const keysResponse = await fetch(`${SUPABASE_URL}/rest/v1/keys?user_id=eq.${userData.id}&order=created_at.asc&limit=1&select=created_at`, {
                 headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
             });
-            const keys = await keysRes.json();
+            const keys = await keysResponse.json();
             if (keys && keys.length > 0 && keys[0].created_at) {
                 const date = new Date(keys[0].created_at);
-                safeSetText('profileJoinDate', date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }));
-            } else safeSetText('profileJoinDate', '—');
+                const joinDate = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+                safeSetText('profileJoinDate', joinDate);
+            } else {
+                safeSetText('profileJoinDate', '—');
+            }
         } else {
             safeSetText('profileTier', 'FREE');
             safeSetText('profileJoinDate', '—');
         }
-    } catch (e) {
+    } catch (error) {
+        console.error('Ошибка загрузки профиля:', error);
         safeSetText('profileTier', 'FREE');
         safeSetText('profileJoinDate', '—');
     }
@@ -138,6 +166,7 @@ async function loadProfile() {
 
 async function loadStatus() {
     if (!user) return;
+    
     try {
         const userProfile = await fetchUserProfile(user.id);
         if (!userProfile) {
@@ -151,30 +180,71 @@ async function loadStatus() {
             window.fullKeyValue = '';
             return;
         }
-
+        
         if (userProfile.tier) safeSetText('profileTier', userProfile.tier);
+        
         activeKeyData = await fetchActiveKey(userProfile.id);
-
+        
         if (activeKeyData) {
-            window.fullKeyValue = activeKeyData.key_hash;
-            safeSetText('statusKey', activeKeyData.key_hash.substring(0, 8) + '...');
+            const fullKey = activeKeyData.key_hash;
+            window.fullKeyValue = fullKey;
+            const shortKey = fullKey.substring(0, 8) + '...';
+            safeSetText('statusKey', shortKey);
             safeSetText('statusTier', activeKeyData.type || 'PREMIUM');
             safeSetText('statusDevices', `${activeKeyData.devices || 1}/2`);
             safeSetText('keyStatus', 'Активен');
-
+            
             if (activeKeyData.expires_at) {
                 const expires = new Date(activeKeyData.expires_at);
                 const now = new Date();
-                let totalDays = 30;
-                if (activeKeyData.type === 'demo') totalDays = 7;
-                else if (activeKeyData.type === 'month') totalDays = 30;
-                else if (activeKeyData.type === 'quarter') totalDays = 90;
-                else if (activeKeyData.type === 'year') totalDays = 365;
-
-                const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
-                const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
-                safeSetText('statusExpires', expires.toLocaleDateString('ru-RU'));
-                safeSetStyle('statusProgress', 'width', progress + '%');
+                
+                // Проверяем, является ли ключ "вечным" (срок > 100 лет)
+                const YEARS_100 = 100 * 365 * 24 * 60 * 60 * 1000;
+                const isEternal = (expires - now) > YEARS_100;
+                
+                if (isEternal) {
+                    // Красивое оформление для вечного ключа
+                    safeSetText('statusExpires', 'Бессрочный');
+                    
+                    // Переливающийся прогресс-бар
+                    const progressBar = document.getElementById('statusProgress');
+                    if (progressBar) {
+                        progressBar.style.width = '100%';
+                        progressBar.style.background = 'linear-gradient(90deg, #FF6B6B, #4ECDC4, #45B7D1, #96CEB4, #FFEAA7)';
+                        progressBar.style.backgroundSize = '200% 100%';
+                        progressBar.style.animation = 'shimmer 3s ease infinite';
+                        
+                        // Добавляем CSS анимацию, если её нет
+                        if (!document.getElementById('eternal-key-style')) {
+                            const style = document.createElement('style');
+                            style.id = 'eternal-key-style';
+                            style.textContent = `
+                                @keyframes shimmer {
+                                    0% { background-position: 0% 50%; }
+                                    50% { background-position: 100% 50%; }
+                                    100% { background-position: 0% 50%; }
+                                }
+                            `;
+                            document.head.appendChild(style);
+                        }
+                    }
+                } else {
+                    // Обычный прогресс-бар для ограниченных ключей
+                    let totalDays = 30;
+                    if (activeKeyData.type === 'demo') totalDays = 7;
+                    else if (activeKeyData.type === 'month') totalDays = 30;
+                    else if (activeKeyData.type === 'quarter') totalDays = 90;
+                    else if (activeKeyData.type === 'year') totalDays = 365;
+                    
+                    const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
+                    const progress = Math.min(100, Math.max(0, (daysLeft / totalDays) * 100));
+                    
+                    safeSetText('statusExpires', expires.toLocaleDateString('ru-RU'));
+                    safeSetStyle('statusProgress', 'width', progress + '%');
+                    safeSetStyle('statusProgress', 'background', '#4CAF50');
+                    safeSetStyle('statusProgress', 'backgroundSize', 'auto');
+                    safeSetStyle('statusProgress', 'animation', 'none');
+                }
             } else {
                 safeSetText('statusExpires', '—');
                 safeSetStyle('statusProgress', 'width', '0%');
@@ -188,25 +258,32 @@ async function loadStatus() {
             safeSetStyle('statusProgress', 'width', '0%');
             window.fullKeyValue = '';
         }
-    } catch (e) {
-        console.error('loadStatus error:', e);
+    } catch (error) {
+        console.error('Ошибка загрузки статуса:', error);
     }
 }
 
-function refreshStatus() { loadStatus(); showToast('Статус обновлён'); }
+function refreshStatus() { 
+    loadStatus(); 
+    showToast('Статус обновлён');
+}
 
 function copyKey() {
     const domain = "nnvpn.shop";
-    if (window.fullKeyValue) {
-        const vlessLink = `vless://${window.fullKeyValue}@${domain}:443?encryption=none&security=tls&sni=${domain}&type=tcp#NNVPN`;
-        navigator.clipboard.writeText(vlessLink);
+    const vlessTemplate = `vless://${window.fullKeyValue}@${domain}:443?encryption=none&security=tls&sni=${domain}&type=tcp#NNVPN`;
+    
+    if (window.fullKeyValue && window.fullKeyValue !== '') {
+        navigator.clipboard.writeText(vlessTemplate);
         showToast('VLESS-ключ скопирован');
-    } else if (activeKeyData?.key_hash) {
-        const vlessLink = `vless://${activeKeyData.key_hash}@${domain}:443?encryption=none&security=tls&sni=${domain}&type=tcp#NNVPN`;
-        navigator.clipboard.writeText(vlessLink);
-        showToast('Ключ скопирован');
     } else {
-        showToast('Ключ не найден');
+        const shortKey = document.getElementById('statusKey').textContent;
+        if (shortKey && shortKey !== '—' && activeKeyData && activeKeyData.key_hash) {
+            const fullVless = `vless://${activeKeyData.key_hash}@${domain}:443?encryption=none&security=tls&sni=${domain}&type=tcp#NNVPN`;
+            navigator.clipboard.writeText(fullVless);
+            showToast('Ключ скопирован');
+        } else {
+            showToast('Ключ не найден');
+        }
     }
 }
 
@@ -237,83 +314,172 @@ async function loadHistory() {
 async function fetchPromoLinks() {
     if (!isAdmin || !user) return [];
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?select=*`, {
             headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
         });
-        return await res.json();
-    } catch (e) { return []; }
+        return await response.json();
+    } catch (error) {
+        return [];
+    }
 }
 
 async function loadPromoLinks() {
     if (!isAdmin || !user) return;
     try {
         const links = await fetchPromoLinks();
-        promoLinks = links.map(l => ({ id: l.id, name: l.name, url: `https://t.me/vpnNoNamebot?start=promo_${l.name}`, clicks: 0, demos: 0, sales: 0, revenue: 0 }));
+        promoLinks = links.map(link => ({
+            id: link.id,
+            name: link.name,
+            url: `https://t.me/vpnNoNamebot?start=promo_${link.name}`,
+            clicks: 0,
+            demos: 0,
+            sales: 0,
+            revenue: 0
+        }));
         renderPromoLinks();
         updatePromoSummary();
-    } catch (e) { promoLinks = []; renderPromoLinks(); }
+    } catch (error) {
+        promoLinks = [];
+        renderPromoLinks();
+    }
 }
 
 function renderPromoLinks() {
     const container = document.getElementById('promoLinksList');
     if (!container) return;
+    
     if (promoLinks.length === 0) {
         container.innerHTML = '<div class="empty-state"><p>Нет созданных ссылок</p></div>';
         return;
     }
-    container.innerHTML = promoLinks.map(link => `
-        <div class="promo-link-item">
-            <div class="promo-link-header"><span class="promo-link-name">${link.name}</span><button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')">📋</button></div>
-            <div class="promo-link-url">${link.url}</div>
-            <div class="promo-link-actions"><button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">Копировать</button><button class="btn btn-outline" onclick="deletePromoLinkById('${link.id}')">Удалить</button></div>
-        </div>
-    `).join('');
+    
+    let html = '';
+    promoLinks.forEach(link => {
+        html += `
+            <div class="promo-link-item" data-id="${link.id}">
+                <div class="promo-link-header">
+                    <span class="promo-link-name">${link.name}</span>
+                    <button class="copy-link-btn" onclick="copyPromoUrl('${link.url}')">📋</button>
+                </div>
+                <div class="promo-link-url">${link.url}</div>
+                <div class="promo-link-stats">
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Клики</span>
+                        <span class="promo-stat-value">0</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Демо</span>
+                        <span class="promo-stat-value">0</span>
+                    </div>
+                    <div class="promo-stat">
+                        <span class="promo-stat-label">Конв</span>
+                        <span class="promo-stat-value">0%</span>
+                    </div>
+                </div>
+                <div class="promo-link-actions">
+                    <button class="btn btn-outline" onclick="copyPromoUrl('${link.url}')">Копировать</button>
+                    <button class="btn btn-outline" onclick="deletePromoLinkById('${link.id}')">Удалить</button>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
 }
 
 function updatePromoSummary() {
-    const totalClicks = promoLinks.reduce((s, l) => s + (l.clicks || 0), 0);
-    const totalDemos = promoLinks.reduce((s, l) => s + (l.demos || 0), 0);
-    safeSetText('promoTotalClicks', totalClicks);
-    safeSetText('promoTotalDemos', totalDemos);
-    safeSetText('promoTotalConv', totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) + '%' : '0%');
+    const totalClicks = promoLinks.reduce((sum, link) => sum + (link.clicks || 0), 0);
+    const totalDemos = promoLinks.reduce((sum, link) => sum + (link.demos || 0), 0);
+    const convRate = totalClicks > 0 ? Math.round((totalDemos / totalClicks) * 100) : 0;
+    
+    safeSetText('promoTotalClicks', totalClicks.toString());
+    safeSetText('promoTotalDemos', totalDemos.toString());
+    safeSetText('promoTotalConv', convRate + '%');
 }
 
 async function createPromoLink() {
-    if (!userData?.id) { await loadProfile(); if (!userData?.id) { showToast('Ошибка загрузки профиля'); return; } }
+    if (!userData || !userData.id) {
+        await loadProfile();
+        if (!userData || !userData.id) {
+            showToast('Ошибка загрузки профиля');
+            return;
+        }
+    }
+    
     const nameInput = document.getElementById('promoNameInput');
-    const name = nameInput?.value.trim();
-    if (!name) { showToast('Введите название ссылки'); return; }
-    if (promoLinks.some(l => l.name === name)) { showToast('Такое название уже существует'); return; }
+    if (!nameInput) return;
+    
+    const name = nameInput.value.trim();
+    
+    if (!name) {
+        showToast('Введите название ссылки');
+        return;
+    }
+    
+    const existing = promoLinks.find(link => link.name === name);
+    if (existing) {
+        showToast('Такое название уже существует');
+        return;
+    }
+    
     try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/promo_links`, {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links`, {
             method: 'POST',
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}`, "Content-Type": "application/json" },
-            body: JSON.stringify({ name, user_id: userData.id })
+            headers: {
+                "apikey": SUPABASE_KEY,
+                "Authorization": `Bearer ${SUPABASE_KEY}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name: name,
+                user_id: userData.id
+            })
         });
-        if (res.ok) {
+        
+        if (response.ok) {
             showToast('Ссылка создана');
-            if (nameInput) nameInput.value = '';
+            nameInput.value = '';
             await loadPromoLinks();
-        } else showToast('Ошибка создания ссылки');
-    } catch (e) { showToast('Ошибка'); }
+        } else {
+            showToast('Ошибка создания ссылки');
+        }
+    } catch (error) {
+        console.error('Ошибка создания:', error);
+        showToast('Ошибка создания ссылки');
+    }
 }
 
 async function deletePromoLinkById(id) {
-    if (!confirm('Удалить?')) return;
-    try {
-        const res = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?id=eq.${id}`, {
-            method: 'DELETE',
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        if (res.ok) {
-            showToast('Ссылка удалена');
-            await loadPromoLinks();
-        } else showToast('Ошибка');
-    } catch (e) { showToast('Ошибка'); }
+    if (confirm('Удалить эту ссылку?')) {
+        try {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?id=eq.${id}`, {
+                method: 'DELETE',
+                headers: {
+                    "apikey": SUPABASE_KEY,
+                    "Authorization": `Bearer ${SUPABASE_KEY}`
+                }
+            });
+            
+            if (response.ok) {
+                showToast('Ссылка удалена');
+                await loadPromoLinks();
+            } else {
+                showToast('Ошибка удаления');
+            }
+        } catch (error) {
+            console.error('Ошибка удаления:', error);
+            showToast('Ошибка удаления');
+        }
+    }
 }
 
-function copyPromoUrl(url) { navigator.clipboard.writeText(url); showToast('Ссылка скопирована'); }
-function refreshPromoStats() { loadPromoLinks(); }
+function copyPromoUrl(url) {
+    navigator.clipboard.writeText(url);
+    showToast('Ссылка скопирована');
+}
+
+function refreshPromoStats() {
+    loadPromoLinks();
+}
 
 // ========== СТАТИСТИКА ==========
 async function loadStats() {
@@ -332,70 +498,95 @@ async function loadStats() {
         safeSetText('statsDemoToPaid', stats.demoToPaid);
         safeSetText('statsChurn', stats.churn);
         safeSetText('statsLTV', stats.ltv);
-    } catch (e) { showToast('Ошибка загрузки статистики'); }
+    } catch (error) {
+        console.error('Ошибка загрузки статистики:', error);
+        showToast('Ошибка загрузки статистики');
+    }
 }
 
 async function fetchStatsFromSupabase() {
     try {
-        const [usersRes, keysRes, paymentsRes, promoRes] = await Promise.all([
-            fetch(`${SUPABASE_URL}/rest/v1/users?select=id,created_at`, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }),
-            fetch(`${SUPABASE_URL}/rest/v1/keys?select=id,user_id,type,created_at,expires_at&is_active=eq.true`, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }),
-            fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status,user_id`, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }),
-            fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } })
-        ]);
+        const usersRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=id,created_at`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
         const users = await usersRes.json();
-        const activeKeys = await keysRes.json();
-        const payments = await paymentsRes.json();
-        const promoData = await promoRes.json();
-
         const totalUsers = users?.length || 0;
+        
+        const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id,user_id,type,created_at,expires_at&is_active=eq.true`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        const activeKeys = await keysRes.json();
         const activeCount = activeKeys?.length || 0;
         const demoCount = (activeKeys || []).filter(k => k.type === 'demo').length;
-        const completed = (payments || []).filter(p => p.status === 'completed');
-        const totalRevenue = completed.reduce((s, p) => s + (p.amount_rub || 0), 0);
+        
+        const paymentsRes = await fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status,user_id`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        const payments = await paymentsRes.json();
+        const completed = payments?.filter(p => p.status === 'completed') || [];
+        const totalRevenue = completed.reduce((sum, p) => sum + (p.amount_rub || 0), 0);
         const totalSales = completed.length;
+        
+        const oneMonthAgo = new Date();
+        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        const monthRevenue = completed.filter(p => new Date(p.created_at) > oneMonthAgo).reduce((sum, p) => sum + (p.amount_rub || 0), 0);
+        
         const avgCheck = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
-        const oneWeekAgo = new Date(); oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         const newUsersCount = (users || []).filter(u => new Date(u.created_at) > oneWeekAgo).length;
+        
         const activeToday = Math.round(activeCount * 0.3);
-        const oneMonthAgo = new Date(); oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const monthRevenue = completed.filter(p => new Date(p.created_at) > oneMonthAgo).reduce((s, p) => s + (p.amount_rub || 0), 0);
-
-        const allDemoRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } });
+        
+        let demoToPaid = 0;
+        const allDemoRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
         const allDemo = await allDemoRes.json();
         const demoUsers = [...new Set((allDemo || []).map(k => k.user_id))];
         const payingUsers = [...new Set(completed.map(p => p.user_id))];
         const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
-        const demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
-
+        demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
+        
+        let clickToDemo = 0;
+        const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
+        const promoData = await promoRes.json();
         const totalClicks = promoData?.length || 0;
         const convertedClicks = (promoData || []).filter(c => c.converted_to_demo === true).length;
-        const clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
-
-        const expiredRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&is_active=eq.false`, { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } });
+        clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
+        
+        let churn = 0;
+        const expiredRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&is_active=eq.false`, {
+            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
+        });
         const expiredKeys = await expiredRes.json();
         const expiredUsers = [...new Set((expiredKeys || []).map(k => k.user_id))];
         const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
-        const churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
-
+        churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
+        
+        let ltv = 0;
         const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
-        const ltv = Math.round(avgCheck * avgPurchasesPerUser);
-
+        ltv = Math.round(avgCheck * avgPurchasesPerUser);
+        
         return {
-            totalUsers: totalUsers >= 1000 ? (totalUsers / 1000).toFixed(1) + 'K' : totalUsers.toString(),
-            activeToday: activeToday >= 1000 ? (activeToday / 1000).toFixed(1) + 'K' : activeToday.toString(),
-            newWeek: newUsersCount >= 1000 ? (newUsersCount / 1000).toFixed(1) + 'K' : newUsersCount.toString(),
-            demoKeys: demoCount >= 1000 ? (demoCount / 1000).toFixed(1) + 'K' : demoCount.toString(),
-            totalSales: totalSales >= 1000 ? (totalSales / 1000).toFixed(1) + 'K' : totalSales.toString(),
-            totalRevenue: totalRevenue >= 1000 ? (totalRevenue / 1000).toFixed(1) + 'K ₽' : totalRevenue + ' ₽',
-            monthRevenue: monthRevenue >= 1000 ? (monthRevenue / 1000).toFixed(1) + 'K ₽' : monthRevenue + ' ₽',
-            avgCheck: avgCheck >= 1000 ? (avgCheck / 1000).toFixed(1) + 'K ₽' : avgCheck + ' ₽',
+            totalUsers: formatNumber(totalUsers),
+            activeToday: formatNumber(activeToday),
+            newWeek: formatNumber(newUsersCount),
+            demoKeys: formatNumber(demoCount),
+            totalSales: formatNumber(totalSales),
+            totalRevenue: formatMoney(totalRevenue),
+            monthRevenue: formatMoney(monthRevenue),
+            avgCheck: formatMoney(avgCheck),
             clickToDemo: clickToDemo + '%',
             demoToPaid: demoToPaid + '%',
             churn: churn + '%',
-            ltv: ltv >= 1000 ? (ltv / 1000).toFixed(1) + 'K ₽' : ltv + ' ₽'
+            ltv: formatMoney(ltv)
         };
-    } catch (e) {
+    } catch (error) {
+        console.error('Ошибка fetchStatsFromSupabase:', error);
         return {
             totalUsers: '0', activeToday: '0', newWeek: '0', demoKeys: '0',
             totalSales: '0', totalRevenue: '0 ₽', monthRevenue: '0 ₽', avgCheck: '0 ₽',
@@ -404,7 +595,21 @@ async function fetchStatsFromSupabase() {
     }
 }
 
-function refreshStats() { loadStats(); showToast('Статистика обновлена'); }
+function formatNumber(num) {
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num.toString();
+}
+
+function formatMoney(amount) {
+    if (amount >= 1000) return (amount / 1000).toFixed(1) + 'K ₽';
+    return amount + ' ₽';
+}
+
+function refreshStats() { 
+    loadStats(); 
+    showToast('Статистика обновлена');
+}
+
 function showToast(text, duration = 3000) {
     const toast = document.getElementById('toast');
     if (!toast) return;
@@ -413,28 +618,32 @@ function showToast(text, duration = 3000) {
     setTimeout(() => toast.classList.remove('show'), duration);
 }
 
+// ========== ТАРИФЫ ==========
 const plans = {
-    month: { name: '1 месяц', price: 250, devices: 2, days: 30 },
-    quarter: { name: '3 месяца', price: 650, devices: 3, days: 90 },
-    halfyear: { name: '6 месяцев', price: 1200, devices: 4, days: 180 },
-    year: { name: '12 месяцев', price: 2200, devices: 5, days: 365 }
+    month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
+    quarter: { name: '3 месяца', price: 650, type: 'PREMIUM', devices: 3, days: 90 },
+    halfyear: { name: '6 месяцев', price: 1200, type: 'PREMIUM', devices: 4, days: 180 },
+    year: { name: '12 месяцев', price: 2200, type: 'PREMIUM', devices: 5, days: 365 }
 };
 
 let selectedPlan = null;
+
 function selectPlan(plan) {
     selectedPlan = plan;
-    const modal = document.getElementById('paymentModal');
-    const title = document.getElementById('modalTitle');
-    const desc = document.getElementById('modalDescription');
-    if (title) title.textContent = plans[plan].name;
-    if (desc) desc.textContent = `Сумма: ${plans[plan].price} ₽`;
-    if (modal) modal.style.display = 'flex';
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDescription = document.getElementById('modalDescription');
+    const paymentModal = document.getElementById('paymentModal');
+    if (modalTitle) modalTitle.textContent = plans[plan].name;
+    if (modalDescription) modalDescription.textContent = `Сумма: ${plans[plan].price} ₽`;
+    if (paymentModal) paymentModal.style.display = 'flex';
 }
+
 function closeModal() {
-    const modal = document.getElementById('paymentModal');
-    if (modal) modal.style.display = 'none';
+    const paymentModal = document.getElementById('paymentModal');
+    if (paymentModal) paymentModal.style.display = 'none';
     selectedPlan = null;
 }
+
 function payWith(method) {
     if (!selectedPlan) return;
     tg.MainButton.setText('Обработка...');
@@ -463,20 +672,32 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
     });
 });
 
-if (isAdmin) document.querySelectorAll('.admin-only').forEach(el => { if (el) el.style.display = 'block'; });
+if (isAdmin) {
+    document.querySelectorAll('.admin-only').forEach(el => {
+        if (el) el.style.display = 'block';
+    });
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
     const defaultTab = document.querySelector('[data-tab="status"]');
     if (defaultTab) defaultTab.classList.add('active');
+    
     const defaultTabContent = document.getElementById('tab-status');
     if (defaultTabContent) defaultTabContent.classList.add('active');
+    
     await loadProfile();
     await loadStatus();
     await loadHistory();
+    
     if (isAdmin) {
         await loadPromoLinks();
         await loadStats();
     }
+    
     const modal = document.getElementById('paymentModal');
-    if (modal) modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+    }
 });
