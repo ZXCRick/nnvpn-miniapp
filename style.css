@@ -519,7 +519,7 @@ body {
 }
 
 .plan-card:hover {
-    border-color: #27E0A8;
+    border-color: #27E0A8 !important;
     transform: translateY(-2px);
 }
 
@@ -575,6 +575,7 @@ body {
     position: absolute;
     left: 4px;
 }
+
 /* ===== СТАТУС ===== */
 .status-card {
     background: #121624;
