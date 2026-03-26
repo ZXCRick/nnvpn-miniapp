@@ -964,3 +964,60 @@ body {
     font-size: 12px;
     margin-left: 8px;
 }
+
+.instructions-card {
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.instructions-card h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 16px 0 8px;
+    color: #27E0A8;
+}
+
+.instructions-card h3:first-child {
+    margin-top: 0;
+}
+
+.instructions-card ol {
+    margin: 8px 0 16px;
+    padding-left: 20px;
+}
+
+.instructions-card li {
+    color: #8A8C9A;
+    font-size: 13px;
+    margin-bottom: 6px;
+    line-height: 1.4;
+}
+
+.instruction-note {
+    background: #0B0E1A;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 16px 0;
+    border-left: 3px solid #27E0A8;
+}
+
+.instruction-note h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.instruction-note p {
+    color: #8A8C9A;
+    font-size: 13px;
+    margin-bottom: 6px;
+}
+
+.instruction-note code {
+    background: #1E222F;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+}
