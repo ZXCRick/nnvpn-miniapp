@@ -453,6 +453,7 @@ body {
     letter-spacing: -0.02em;
     position: relative;
     display: inline-block;
+    margin-bottom: 16px;
 }
 
 .section-title::after {
