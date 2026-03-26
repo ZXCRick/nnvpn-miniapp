@@ -597,7 +597,7 @@ async function loadStats() {
 
 async function fetchStatsFromSupabase() {
     // Всего пользователей
-    const usersRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=id`, {
+    const usersRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=id,created_at`, {
         headers: {
             "apikey": SUPABASE_KEY,
             "Authorization": `Bearer ${SUPABASE_KEY}`
@@ -606,8 +606,8 @@ async function fetchStatsFromSupabase() {
     const users = await usersRes.json();
     const totalUsers = users.length;
     
-    // Активные ключи (is_active = true)
-    const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id&is_active=eq.true`, {
+    // Активные ключи (is_active = true) с дополнительными данными
+    const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id,user_id,type,created_at,expires_at&is_active=eq.true`, {
         headers: {
             "apikey": SUPABASE_KEY,
             "Authorization": `Bearer ${SUPABASE_KEY}`
@@ -617,17 +617,15 @@ async function fetchStatsFromSupabase() {
     const activeCount = activeKeys.length;
     
     // Демо-ключи
-    const demoRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id&type=eq.demo`, {
-        headers: {
-            "apikey": SUPABASE_KEY,
-            "Authorization": `Bearer ${SUPABASE_KEY}`
-        }
-    });
-    const demoKeys = await demoRes.json();
+    const demoKeys = activeKeys.filter(k => k.type === 'demo');
     const demoCount = demoKeys.length;
     
+    // Платные ключи
+    const paidKeys = activeKeys.filter(k => k.type !== 'demo');
+    const paidCount = paidKeys.length;
+    
     // Платежи
-    const paymentsRes = await fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status`, {
+    const paymentsRes = await fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status,user_id`, {
         headers: {
             "apikey": SUPABASE_KEY,
             "Authorization": `Bearer ${SUPABASE_KEY}`
@@ -640,7 +638,7 @@ async function fetchStatsFromSupabase() {
     const totalRevenue = completed.reduce((sum, p) => sum + p.amount_rub, 0);
     const totalSales = completed.length;
     
-    // За последний месяц
+    // Выручка за месяц
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
     const monthPayments = completed.filter(p => new Date(p.created_at) > oneMonthAgo);
@@ -649,46 +647,80 @@ async function fetchStatsFromSupabase() {
     // Средний чек
     const avgCheck = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
     
-    // Активные сегодня (примерно: 10% от активных)
+    // Новые пользователи за неделю
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const newUsers = users.filter(u => new Date(u.created_at) > oneWeekAgo);
+    const newUsersCount = newUsers.length;
+    
+    // Активные сегодня — пользователи, у которых есть ключ и он активен
+    // Используем 30% от активных ключей как приближение
     const activeToday = Math.round(activeCount * 0.3);
     
-    // Новые за неделю (примерно: 20% от активных)
-    const newWeek = Math.round(activeCount * 0.15);
+    // Конверсия: демо → платно
+    // Считаем, сколько из тех, у кого был демо, купили платный ключ
+    // Находим всех пользователей, у которых был демо-ключ
+    const allDemoKeys = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    const allDemoData = await allDemoKeys.json();
+    const demoUsers = [...new Set(allDemoData.map(k => k.user_id))];
     
-    // Конверсия (заглушка, потом можно будет считать реальную)
-    const clickToDemo = '24%';
-    const demoToPaid = '12%';
-    const churn = '5.6%';
-    const ltv = '1 450 ₽';
+    // Пользователи, которые купили платные ключи
+    const payingUsers = [...new Set(completed.map(p => p.user_id))];
+    const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
+    const demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
+    
+    // Конверсия: клики по промо → демо
+    // Нужны данные из promo_clicks, пока считаем из активных демо-ключей
+    const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    const promoData = await promoRes.json();
+    const totalClicks = promoData.length;
+    const convertedClicks = promoData.filter(c => c.converted_to_demo === true).length;
+    const clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
+    
+    // Отток — пользователи, у которых истёк ключ и не продлили
+    // Находим все ключи, которые были активны, но истекли
+    const now = new Date().toISOString();
+    const expiredKeysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id,expires_at&is_active=eq.false`, {
+        headers: {
+            "apikey": SUPABASE_KEY,
+            "Authorization": `Bearer ${SUPABASE_KEY}`
+        }
+    });
+    const expiredKeys = await expiredKeysRes.json();
+    const expiredUsers = [...new Set(expiredKeys.map(k => k.user_id))];
+    
+    // Из них кто не купил новый ключ
+    const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
+    const churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
+    
+    // LTV = средний чек × среднее количество покупок на платящего пользователя
+    const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
+    const ltv = Math.round(avgCheck * avgPurchasesPerUser);
     
     return {
         totalUsers: formatNumber(totalUsers),
         activeToday: formatNumber(activeToday),
-        newWeek: formatNumber(newWeek),
+        newWeek: formatNumber(newUsersCount),
         demoKeys: formatNumber(demoCount),
         totalSales: formatNumber(totalSales),
         totalRevenue: formatMoney(totalRevenue),
         monthRevenue: formatMoney(monthRevenue),
         avgCheck: formatMoney(avgCheck),
-        clickToDemo: clickToDemo,
-        demoToPaid: demoToPaid,
-        churn: churn,
-        ltv: ltv
+        clickToDemo: clickToDemo + '%',
+        demoToPaid: demoToPaid + '%',
+        churn: churn + '%',
+        ltv: formatMoney(ltv)
     };
-}
-
-function formatNumber(num) {
-    if (num >= 1000) {
-        return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-}
-
-function formatMoney(amount) {
-    if (amount >= 1000) {
-        return (amount / 1000).toFixed(1) + 'K ₽';
-    }
-    return amount + ' ₽';
 }
 
 // ========== УВЕДОМЛЕНИЯ ==========
