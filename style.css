@@ -1063,6 +1063,7 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 16px;
+    position: relative;
 }
 
 .section-title {
@@ -1083,6 +1084,12 @@ body {
     height: 2px;
     background: #27E0A8;
     animation: titleLine 1.5s ease-in-out infinite;
+    z-index: 1;
+}
+
+@keyframes titleLine {
+    0%, 100% { width: 40px; opacity: 0.5; }
+    50% { width: 60px; opacity: 1; }
 }
 
 .help-button {
@@ -1093,10 +1100,24 @@ body {
     background: #0B0E1A;
     border: 1px solid #1E222F;
     border-radius: 6px;
-    padding: 4px 8px;
+    padding: 4px 10px;
     cursor: pointer;
     transition: all 0.2s ease;
     white-space: nowrap;
+    animation: helpAppear 0.4s ease-out;
+    z-index: 2;
+    position: relative;
+}
+
+@keyframes helpAppear {
+    0% {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .help-button:hover {
