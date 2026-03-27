@@ -181,7 +181,6 @@ body {
 .welcome-banner { animation-delay: 0.1s; }
 .profile-section { animation-delay: 0.2s; }
 .nav { animation-delay: 0.3s; }
-.section-title { animation-delay: 0.4s; }
 .status-card { animation-delay: 0.5s; }
 .plan-card:nth-child(1) { animation-delay: 0.5s; }
 .plan-card:nth-child(2) { animation-delay: 0.6s; }
