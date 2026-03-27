@@ -652,15 +652,36 @@ function showInstructions() {
     if (instructionsBtn) instructionsBtn.classList.add('active');
 }
 
+function animateTabContent(tabId) {
+    const tab = document.getElementById(tabId);
+    if (!tab) return;
+    
+    const animatedElements = tab.querySelectorAll('.animate-on-load');
+    animatedElements.forEach((el, index) => {
+        el.style.animation = 'none';
+        el.offsetHeight;
+        el.style.animation = `slideUpFade 0.6s ease-out forwards`;
+        if (index < 4) {
+            el.style.animationDelay = `${0.1 + index * 0.1}s`;
+        } else {
+            el.style.animationDelay = '0s';
+        }
+    });
+}
+
 document.querySelectorAll('.nav-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
+        
         document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
         const tabId = `tab-${this.dataset.tab}`;
         const activeTab = document.getElementById(tabId);
         if (activeTab) {
             activeTab.classList.add('active');
+            
+            animateTabContent(tabId);
+            
             if (this.dataset.tab === 'status') loadStatus();
             else if (this.dataset.tab === 'history') loadHistory();
             else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
@@ -697,10 +718,4 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (e.target === this) closeModal();
         });
     }
-    // Обработчик для подсказки
-const helpTip = document.querySelector('.help-tip');
-if (helpTip) {
-    helpTip.addEventListener('click', showInstructions);
-}
-    
 });
