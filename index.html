@@ -83,6 +83,7 @@
         </nav>
 
         <div class="content">
+            <!-- Статус подписки -->
             <div class="tab active" id="tab-status">
                 <div class="section-title-wrapper">
                     <h2 class="section-title">Статус подписки</h2>
@@ -119,10 +120,13 @@
                 <button class="btn btn-outline animate-on-load" onclick="refreshStatus()">Обновить</button>
             </div>
 
+            <!-- Тарифы -->
             <div class="tab" id="tab-plans">
-                <h2 class="section-title">Тарифы</h2>
+                <div class="section-title-wrapper">
+                    <h2 class="section-title">Тарифы</h2>
+                </div>
                 <div class="plans">
-                    <div class="plan-card" onclick="selectPlan('month')">
+                    <div class="plan-card animate-on-load" onclick="selectPlan('month')">
                         <div class="plan-name">1 месяц</div>
                         <div class="plan-price">250 ₽</div>
                         <ul class="plan-features">
@@ -132,7 +136,7 @@
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
-                    <div class="plan-card" onclick="selectPlan('quarter')">
+                    <div class="plan-card animate-on-load" onclick="selectPlan('quarter')">
                         <div class="plan-badge">−13%</div>
                         <div class="plan-name">3 месяца</div>
                         <div class="plan-price">650 ₽</div>
@@ -144,7 +148,7 @@
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
-                    <div class="plan-card" onclick="selectPlan('halfyear')">
+                    <div class="plan-card animate-on-load" onclick="selectPlan('halfyear')">
                         <div class="plan-badge">−20%</div>
                         <div class="plan-name">6 месяцев</div>
                         <div class="plan-price">1 200 ₽</div>
@@ -156,7 +160,7 @@
                         </ul>
                         <button class="btn">Выбрать</button>
                     </div>
-                    <div class="plan-card" onclick="selectPlan('year')">
+                    <div class="plan-card animate-on-load" onclick="selectPlan('year')">
                         <div class="plan-badge">−27%</div>
                         <div class="plan-name">12 месяцев</div>
                         <div class="plan-price">2 200 ₽</div>
@@ -171,33 +175,39 @@
                 </div>
             </div>
 
+            <!-- История -->
             <div class="tab" id="tab-history">
-                <h2 class="section-title">История</h2>
-                <div class="history-list" id="historyList">
+                <div class="section-title-wrapper">
+                    <h2 class="section-title">История</h2>
+                </div>
+                <div class="history-list animate-on-load">
                     <div class="empty-state">
-                        <p>Загрузка...</p>
+                        <p>Нет операций</p>
                     </div>
                 </div>
             </div>
 
+            <!-- Статистика -->
             <div class="tab" id="tab-stats">
-                <h2 class="section-title">Статистика</h2>
+                <div class="section-title-wrapper">
+                    <h2 class="section-title">Статистика</h2>
+                </div>
                 <div class="stats-section">
                     <h3 class="stats-subtitle">Пользователи</h3>
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Всего</div>
                             <div class="stat-value" id="statsTotalUsers">0</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Активных сегодня</div>
                             <div class="stat-value" id="statsActiveToday">0</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Новых за неделю</div>
                             <div class="stat-value" id="statsNewWeek">0</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Демо-ключей</div>
                             <div class="stat-value" id="statsDemoKeys">0</div>
                         </div>
@@ -206,19 +216,19 @@
                 <div class="stats-section">
                     <h3 class="stats-subtitle">Финансы</h3>
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Всего продаж</div>
                             <div class="stat-value" id="statsTotalSales">0</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Выручка</div>
                             <div class="stat-value" id="statsTotalRevenue">0 ₽</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">За месяц</div>
                             <div class="stat-value" id="statsMonthRevenue">0 ₽</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Средний чек</div>
                             <div class="stat-value" id="statsAvgCheck">0 ₽</div>
                         </div>
@@ -227,30 +237,33 @@
                 <div class="stats-section">
                     <h3 class="stats-subtitle">Конверсия</h3>
                     <div class="stats-grid">
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Клики → Демо</div>
                             <div class="stat-value" id="statsClickToDemo">0%</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Демо → Покупка</div>
                             <div class="stat-value" id="statsDemoToPaid">0%</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">Отказов</div>
                             <div class="stat-value" id="statsChurn">0%</div>
                         </div>
-                        <div class="stat-card">
+                        <div class="stat-card animate-on-load">
                             <div class="stat-label">LTV</div>
                             <div class="stat-value" id="statsLTV">0 ₽</div>
                         </div>
                     </div>
                 </div>
-                <button class="btn" onclick="refreshStats()">Обновить</button>
+                <button class="btn animate-on-load" onclick="refreshStats()">Обновить</button>
             </div>
 
+            <!-- Промо -->
             <div class="tab" id="tab-promo">
-                <h2 class="section-title">Промо-кампании</h2>
-                <div class="promo-summary">
+                <div class="section-title-wrapper">
+                    <h2 class="section-title">Промо-кампании</h2>
+                </div>
+                <div class="promo-summary animate-on-load">
                     <div class="summary-card">
                         <div class="summary-label">Всего кликов</div>
                         <div class="summary-value" id="promoTotalClicks">0</div>
@@ -264,14 +277,14 @@
                         <div class="summary-value" id="promoTotalConv">0%</div>
                     </div>
                 </div>
-                <div class="promo-create">
+                <div class="promo-create animate-on-load">
                     <h3 class="promo-subtitle">Новая ссылка</h3>
                     <div class="create-form">
                         <input type="text" id="promoNameInput" placeholder="Название кампании" class="promo-input">
-                        <button class="btn" onclick="createPromoLink()">Создать</button>
+                        <button class="btn" id="createPromoBtn" onclick="createPromoLink()">Создать</button>
                     </div>
                 </div>
-                <div class="promo-links">
+                <div class="promo-links animate-on-load">
                     <h3 class="promo-subtitle">Промо ссылки</h3>
                     <div id="promoLinksList">
                         <div class="empty-state">
@@ -279,12 +292,15 @@
                         </div>
                     </div>
                 </div>
-                <button class="btn btn-outline" onclick="refreshPromoStats()">Обновить статистику</button>
+                <button class="btn btn-outline animate-on-load" onclick="refreshPromoStats()">Обновить статистику</button>
             </div>
 
+            <!-- Инструкция -->
             <div class="tab" id="tab-instructions">
-                <h2 class="section-title">Инструкция</h2>
-                <div class="instructions-card">
+                <div class="section-title-wrapper">
+                    <h2 class="section-title">Инструкция</h2>
+                </div>
+                <div class="instructions-card animate-on-load">
                     <h3>iOS (Happ)</h3>
                     <ol>
                         <li>Скачайте Happ из App Store</li>
