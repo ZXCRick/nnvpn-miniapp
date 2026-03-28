@@ -697,7 +697,7 @@ async function payWithCrypto() {
     showToast('Создаём счёт...');
     
     try {
-        const response = await fetch('https://nnvpn.shop:8443/create-invoice', {
+        const response = await fetch('http://2.27.63.85:5000/create-invoice', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
