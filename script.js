@@ -630,15 +630,35 @@ function closeModal() {
     selectedPlan = null;
 }
 
-function payWith(method) {
+async function payWithCrypto() {
     if (!selectedPlan) return;
-    tg.MainButton.setText('Обработка...');
-    tg.MainButton.show();
-    setTimeout(() => {
-        tg.showAlert('Демо-режим: оплата не работает');
-        tg.MainButton.hide();
-        closeModal();
-    }, 1000);
+    
+    const plan = plans[selectedPlan];
+    const userId = user.id;
+    
+    showToast('Создаём счёт...');
+    
+    try {
+        const response = await fetch('https://nnvpn.shop:8443/create-invoice', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                user_id: userId,
+                plan_type: selectedPlan
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            tg.openLink(data.pay_url);
+        } else {
+            showToast('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        console.error(error);
+        showToast('Ошибка при создании счёта');
+    }
 }
 
 function showInstructions() {
