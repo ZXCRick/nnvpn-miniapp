@@ -100,7 +100,7 @@ async function fetchActiveKey(userId) {
 async function fetchUserPayments(userId) {
     try {
         const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=10`,
+            `${SUPABASE_URL}/rest/v1/payments?user_id=eq.${userId}&select=*&order=created_at.desc&limit=50`,
             { headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` } }
         );
         if (!response.ok) return [];
@@ -221,6 +221,7 @@ async function loadStatus() {
                     if (activeKeyData.type === 'demo') totalDays = 7;
                     else if (activeKeyData.type === 'month') totalDays = 30;
                     else if (activeKeyData.type === 'quarter') totalDays = 90;
+                    else if (activeKeyData.type === 'halfyear') totalDays = 180;
                     else if (activeKeyData.type === 'year') totalDays = 365;
                     
                     const daysLeft = Math.ceil((expires - now) / (1000 * 60 * 60 * 24));
@@ -274,26 +275,84 @@ function copyKey() {
 }
 
 async function loadHistory() {
-    if (!user) return;
+    if (!user) {
+        safeSetHtml('historyList', '<div class="empty-state"><p>Нет операций</p></div>');
+        return;
+    }
+    
     const userProfile = await fetchUserProfile(user.id);
     if (!userProfile) {
         safeSetHtml('historyList', '<div class="empty-state"><p>Нет операций</p></div>');
         return;
     }
+    
     const payments = await fetchUserPayments(userProfile.id);
     const list = document.getElementById('historyList');
     if (!list) return;
+    
     if (!payments || payments.length === 0) {
         list.innerHTML = '<div class="empty-state"><p>Нет операций</p></div>';
         return;
     }
-    list.innerHTML = payments.map(p => `
-        <div class="history-item">
-            <span>${p.created_at?.slice(0, 10)}</span>
-            <span>${p.amount_rub} ₽</span>
-            <span class="${p.status === 'completed' ? 'status-success' : 'status-pending'}">${p.status}</span>
-        </div>
-    `).join('');
+    
+    // Группируем платежи по датам
+    const grouped = {};
+    payments.forEach(p => {
+        const date = new Date(p.created_at);
+        const dateKey = date.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        if (!grouped[dateKey]) grouped[dateKey] = [];
+        grouped[dateKey].push(p);
+    });
+    
+    let html = '';
+    for (const [date, items] of Object.entries(grouped)) {
+        html += `
+            <div class="history-date-group">
+                <div class="history-date">${date}</div>
+                <div class="history-items">
+        `;
+        
+        items.forEach(p => {
+            const periodText = getPeriodText(p.period);
+            const methodText = p.payment_method === 'crypto' ? '💎 CryptoBot' : (p.payment_method === 'card' ? '💳 Карта' : '💎 Криптовалюта');
+            const statusClass = p.status === 'completed' ? 'status-success' : 'status-pending';
+            const statusText = p.status === 'completed' ? '✅ Оплачено' : '⏳ Ожидание';
+            
+            html += `
+                <div class="history-item">
+                    <div class="history-item-main">
+                        <div class="history-item-title">
+                            <span class="history-period">${periodText}</span>
+                            <span class="history-amount">${p.amount_rub} ₽</span>
+                        </div>
+                        <div class="history-item-details">
+                            <span class="history-method">${methodText}</span>
+                            <span class="${statusClass}">${statusText}</span>
+                        </div>
+                        ${p.aggregator_payment_id ? `<div class="history-tx">ID: ${p.aggregator_payment_id}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    }
+    
+    list.innerHTML = html;
+}
+
+function getPeriodText(period) {
+    const periods = {
+        'month': '1 месяц',
+        'quarter': '3 месяца',
+        'halfyear': '6 месяцев',
+        'year': '12 месяцев',
+        'demo': 'Демо-доступ'
+    };
+    return periods[period] || period;
 }
 
 // ========== ПРОМО-ССЫЛКИ ==========
@@ -437,305 +496,4 @@ async function createPromoLink() {
 async function deletePromoLinkById(id) {
     if (confirm('Удалить эту ссылку?')) {
         try {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/promo_links?id=eq.${id}`, {
-                method: 'DELETE',
-                headers: {
-                    "apikey": SUPABASE_KEY,
-                    "Authorization": `Bearer ${SUPABASE_KEY}`
-                }
-            });
-            
-            if (response.ok) {
-                showToast('Ссылка удалена');
-                await loadPromoLinks();
-            } else {
-                showToast('Ошибка удаления');
-            }
-        } catch (error) {
-            console.error('Ошибка удаления:', error);
-            showToast('Ошибка удаления');
-        }
-    }
-}
-
-function copyPromoUrl(url) {
-    navigator.clipboard.writeText(url);
-    showToast('Ссылка скопирована');
-}
-
-function refreshPromoStats() {
-    loadPromoLinks();
-}
-
-// ========== СТАТИСТИКА ==========
-async function loadStats() {
-    if (!isAdmin) return;
-    try {
-        const stats = await fetchStatsFromSupabase();
-        safeSetText('statsTotalUsers', stats.totalUsers);
-        safeSetText('statsActiveToday', stats.activeToday);
-        safeSetText('statsNewWeek', stats.newWeek);
-        safeSetText('statsDemoKeys', stats.demoKeys);
-        safeSetText('statsTotalSales', stats.totalSales);
-        safeSetText('statsTotalRevenue', stats.totalRevenue);
-        safeSetText('statsMonthRevenue', stats.monthRevenue);
-        safeSetText('statsAvgCheck', stats.avgCheck);
-        safeSetText('statsClickToDemo', stats.clickToDemo);
-        safeSetText('statsDemoToPaid', stats.demoToPaid);
-        safeSetText('statsChurn', stats.churn);
-        safeSetText('statsLTV', stats.ltv);
-    } catch (error) {
-        console.error('Ошибка загрузки статистики:', error);
-        showToast('Ошибка загрузки статистики');
-    }
-}
-
-async function fetchStatsFromSupabase() {
-    try {
-        const usersRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=id,created_at`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const users = await usersRes.json();
-        const totalUsers = users?.length || 0;
-        
-        const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id,user_id,type,created_at,expires_at&is_active=eq.true`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const activeKeys = await keysRes.json();
-        const activeCount = activeKeys?.length || 0;
-        const demoCount = (activeKeys || []).filter(k => k.type === 'demo').length;
-        
-        const paymentsRes = await fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status,user_id`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const payments = await paymentsRes.json();
-        const completed = payments?.filter(p => p.status === 'completed') || [];
-        const totalRevenue = completed.reduce((sum, p) => sum + (p.amount_rub || 0), 0);
-        const totalSales = completed.length;
-        
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const monthRevenue = completed.filter(p => new Date(p.created_at) > oneMonthAgo).reduce((sum, p) => sum + (p.amount_rub || 0), 0);
-        
-        const avgCheck = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
-        
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const newUsersCount = (users || []).filter(u => new Date(u.created_at) > oneWeekAgo).length;
-        
-        const activeToday = Math.round(activeCount * 0.3);
-        
-        let demoToPaid = 0;
-        const allDemoRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const allDemo = await allDemoRes.json();
-        const demoUsers = [...new Set((allDemo || []).map(k => k.user_id))];
-        const payingUsers = [...new Set(completed.map(p => p.user_id))];
-        const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
-        demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
-        
-        let clickToDemo = 0;
-        const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const promoData = await promoRes.json();
-        const totalClicks = promoData?.length || 0;
-        const convertedClicks = (promoData || []).filter(c => c.converted_to_demo === true).length;
-        clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
-        
-        let churn = 0;
-        const expiredRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&is_active=eq.false`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const expiredKeys = await expiredRes.json();
-        const expiredUsers = [...new Set((expiredKeys || []).map(k => k.user_id))];
-        const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
-        churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
-        
-        let ltv = 0;
-        const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
-        ltv = Math.round(avgCheck * avgPurchasesPerUser);
-        
-        return {
-            totalUsers: formatNumber(totalUsers),
-            activeToday: formatNumber(activeToday),
-            newWeek: formatNumber(newUsersCount),
-            demoKeys: formatNumber(demoCount),
-            totalSales: formatNumber(totalSales),
-            totalRevenue: formatMoney(totalRevenue),
-            monthRevenue: formatMoney(monthRevenue),
-            avgCheck: formatMoney(avgCheck),
-            clickToDemo: clickToDemo + '%',
-            demoToPaid: demoToPaid + '%',
-            churn: churn + '%',
-            ltv: formatMoney(ltv)
-        };
-    } catch (error) {
-        console.error('Ошибка fetchStatsFromSupabase:', error);
-        return {
-            totalUsers: '0', activeToday: '0', newWeek: '0', demoKeys: '0',
-            totalSales: '0', totalRevenue: '0 ₽', monthRevenue: '0 ₽', avgCheck: '0 ₽',
-            clickToDemo: '0%', demoToPaid: '0%', churn: '0%', ltv: '0 ₽'
-        };
-    }
-}
-
-function formatNumber(num) {
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-}
-
-function formatMoney(amount) {
-    if (amount >= 1000) return (amount / 1000).toFixed(1) + 'K ₽';
-    return amount + ' ₽';
-}
-
-function refreshStats() { 
-    loadStats(); 
-    showToast('Статистика обновлена');
-}
-
-function showToast(text, duration = 3000) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = text;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), duration);
-}
-
-// ========== ТАРИФЫ ==========
-const plans = {
-    month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
-    quarter: { name: '3 месяца', price: 650, type: 'PREMIUM', devices: 3, days: 90 },
-    halfyear: { name: '6 месяцев', price: 1200, type: 'PREMIUM', devices: 4, days: 180 },
-    year: { name: '12 месяцев', price: 2200, type: 'PREMIUM', devices: 5, days: 365 }
-};
-
-let selectedPlan = null;
-
-function selectPlan(plan) {
-    selectedPlan = plan;
-    const modalTitle = document.getElementById('modalTitle');
-    const modalDescription = document.getElementById('modalDescription');
-    const paymentModal = document.getElementById('paymentModal');
-    if (modalTitle) modalTitle.textContent = plans[plan].name;
-    if (modalDescription) modalDescription.textContent = `Сумма: ${plans[plan].price} ₽`;
-    if (paymentModal) paymentModal.style.display = 'flex';
-}
-
-function closeModal() {
-    const paymentModal = document.getElementById('paymentModal');
-    if (paymentModal) paymentModal.style.display = 'none';
-    selectedPlan = null;
-}
-
-async function payWithCrypto() {
-    if (!selectedPlan) return;
-    
-    const plan = plans[selectedPlan];
-    const userId = user.id;
-    
-    showToast('Создаём счёт...');
-    
-    try {
-        const response = await fetch('https://nnvpn.shop:8443/create-invoice', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                user_id: userId,
-                plan_type: selectedPlan
-            })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-            tg.openLink(data.pay_url);
-        } else {
-            showToast('Ошибка: ' + data.error);
-        }
-    } catch (error) {
-        console.error(error);
-        showToast('Ошибка при создании счёта');
-    }
-}
-
-function showInstructions() {
-    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    
-    const instructionsTab = document.getElementById('tab-instructions');
-    if (instructionsTab) instructionsTab.classList.add('active');
-    
-    const instructionsBtn = document.querySelector('.nav-btn[data-tab="instructions"]');
-    if (instructionsBtn) instructionsBtn.classList.add('active');
-}
-
-function animateTabContent(tabId) {
-    const tab = document.getElementById(tabId);
-    if (!tab) return;
-    
-    const animatedElements = tab.querySelectorAll('.animate-on-load');
-    animatedElements.forEach((el, index) => {
-        el.style.animation = 'none';
-        el.offsetHeight;
-        el.style.animation = `slideUpFade 0.6s ease-out forwards`;
-        if (index < 4) {
-            el.style.animationDelay = `${0.1 + index * 0.1}s`;
-        } else {
-            el.style.animationDelay = '0s';
-        }
-    });
-}
-
-document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        
-        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-        const tabId = `tab-${this.dataset.tab}`;
-        const activeTab = document.getElementById(tabId);
-        if (activeTab) {
-            activeTab.classList.add('active');
-            
-            animateTabContent(tabId);
-            
-            if (this.dataset.tab === 'status') loadStatus();
-            else if (this.dataset.tab === 'history') loadHistory();
-            else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
-            else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
-        }
-    });
-});
-
-if (isAdmin) {
-    document.querySelectorAll('.admin-only').forEach(el => {
-        if (el) el.style.display = 'block';
-    });
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-    const defaultTab = document.querySelector('[data-tab="status"]');
-    if (defaultTab) defaultTab.classList.add('active');
-    
-    const defaultTabContent = document.getElementById('tab-status');
-    if (defaultTabContent) defaultTabContent.classList.add('active');
-    
-    await loadProfile();
-    await loadStatus();
-    await loadHistory();
-    
-    if (isAdmin) {
-        await loadPromoLinks();
-        await loadStats();
-    }
-    
-    const modal = document.getElementById('paymentModal');
-    if (modal) {
-        modal.addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
-        });
-    }
-});
+            const response = await fetch(`${SUPABASE_URL}/rest/v1
