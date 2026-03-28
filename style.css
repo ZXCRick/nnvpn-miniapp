@@ -1102,3 +1102,104 @@ body {
     margin-bottom: 6px;
     line-height: 1.4;
 }
+
+/* Стили для истории */
+.history-date-group {
+    margin-bottom: 20px;
+}
+
+.history-date-group:last-child {
+    margin-bottom: 0;
+}
+
+.history-date {
+    font-size: 12px;
+    color: #27E0A8;
+    margin-bottom: 12px;
+    font-weight: 500;
+    padding-left: 8px;
+    border-left: 2px solid #27E0A8;
+}
+
+.history-items {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    background: #0B0E1A;
+    border: 1px solid #1E222F;
+    border-radius: 12px;
+    padding: 12px;
+    transition: all 0.2s ease;
+}
+
+.history-item:hover {
+    border-color: #27E0A8;
+    transform: translateX(4px);
+}
+
+.history-item-main {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-item-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.history-type {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.history-period {
+    font-size: 14px;
+    font-weight: 500;
+    color: #FFFFFF;
+}
+
+.history-amount {
+    font-size: 16px;
+    font-weight: 600;
+    color: #27E0A8;
+}
+
+.history-item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.history-method {
+    color: #8A8C9A;
+}
+
+.status-success {
+    color: #27E0A8;
+    font-weight: 500;
+}
+
+.status-pending {
+    color: #FFA500;
+    font-weight: 500;
+}
+
+.history-tx {
+    font-size: 10px;
+    color: #5A5C6A;
+    font-family: monospace;
+    margin-top: 4px;
+    word-break: break-all;
+}
