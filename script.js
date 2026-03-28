@@ -706,7 +706,11 @@ async function payWithCrypto() {
             })
         });
         
+        alert('Статус ответа: ' + response.status);
+        
         const data = await response.json();
+        
+        alert('Ответ от сервера: ' + JSON.stringify(data));
         
         if (data.success) {
             tg.openLink(data.pay_url);
@@ -715,7 +719,7 @@ async function payWithCrypto() {
             showToast('Ошибка: ' + data.error);
         }
     } catch (error) {
-        console.error(error);
+        alert('Ошибка: ' + error.message);
         showToast('Ошибка при создании счёта');
     }
 }
