@@ -173,6 +173,15 @@ body {
     50% { width: 60px; opacity: 1; }
 }
 
+@keyframes blinkText {
+    0%, 100% {
+        opacity: 0.5;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 .animate-on-load {
     animation: slideUpFade 0.6s ease-out forwards;
     opacity: 0;
@@ -440,7 +449,7 @@ body {
     width: 60%;
 }
 
-/* ===== СТАТУС ПОДПИСКИ ===== */
+/* ===== ЗАГОЛОВКИ ===== */
 .section-title-wrapper {
     display: flex;
     justify-content: space-between;
@@ -495,15 +504,7 @@ body {
     animation: blinkText 1.5s ease-in-out infinite;
 }
 
-@keyframes blinkText {
-    0%, 100% {
-        opacity: 0.5;
-    }
-    50% {
-        opacity: 1;
-    }
-}
-
+/* ===== КНОПКИ ===== */
 .btn {
     background: transparent;
     border: 1px solid #27E0A8;
