@@ -696,6 +696,8 @@ async function payWithCrypto() {
     
     showToast('Создаём счёт...');
     
+    alert('Отправляем POST запрос на: https://nnvpn.shop:8443/create-invoice');
+    
     try {
         const response = await fetch('https://nnvpn.shop:8443/create-invoice', {
             method: 'POST',
@@ -706,11 +708,9 @@ async function payWithCrypto() {
             })
         });
         
-        alert('Статус ответа: ' + response.status);
+        alert('Статус: ' + response.status);
         
         const data = await response.json();
-        
-        alert('Ответ от сервера: ' + JSON.stringify(data));
         
         if (data.success) {
             tg.openLink(data.pay_url);
@@ -723,7 +723,6 @@ async function payWithCrypto() {
         showToast('Ошибка при создании счёта');
     }
 }
-
 function showInstructions() {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
