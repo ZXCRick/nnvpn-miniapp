@@ -295,7 +295,7 @@ async function loadHistory() {
         return;
     }
     
-    // Группируем платежи по датам
+    // Группируем по датам
     const grouped = {};
     payments.forEach(p => {
         const date = new Date(p.created_at);
@@ -314,7 +314,7 @@ async function loadHistory() {
         
         items.forEach(p => {
             const periodText = getPeriodText(p.period);
-            const methodText = p.payment_method === 'crypto' ? '💎 CryptoBot' : (p.payment_method === 'card' ? '💳 Карта' : '💎 Криптовалюта');
+            const methodText = p.payment_method === 'crypto' ? '💎 CryptoBot' : '💳 Банковская карта';
             const statusClass = p.status === 'completed' ? 'status-success' : 'status-pending';
             const statusText = p.status === 'completed' ? '✅ Оплачено' : '⏳ Ожидание';
             
@@ -322,14 +322,16 @@ async function loadHistory() {
                 <div class="history-item">
                     <div class="history-item-main">
                         <div class="history-item-title">
-                            <span class="history-period">${periodText}</span>
-                            <span class="history-amount">${p.amount_rub} ₽</span>
+                            <div class="history-type">
+                                <span class="history-period">${periodText}</span>
+                            </div>
+                            <span class="history-amount">${p.amount_rub.toLocaleString()} ₽</span>
                         </div>
                         <div class="history-item-details">
                             <span class="history-method">${methodText}</span>
                             <span class="${statusClass}">${statusText}</span>
                         </div>
-                        ${p.aggregator_payment_id ? `<div class="history-tx">ID: ${p.aggregator_payment_id}</div>` : ''}
+                        ${p.aggregator_payment_id ? `<div class="history-tx">${p.aggregator_payment_id}</div>` : ''}
                     </div>
                 </div>
             `;
@@ -696,8 +698,6 @@ async function payWithCrypto() {
     
     showToast('Создаём счёт...');
     
-    alert('Отправляем POST запрос на: https://nnvpn.shop:8443/create-invoice');
-    
     try {
         const response = await fetch('https://nnvpn.shop:8443/create-invoice', {
             method: 'POST',
@@ -708,8 +708,6 @@ async function payWithCrypto() {
             })
         });
         
-        alert('Статус: ' + response.status);
-        
         const data = await response.json();
         
         if (data.success) {
@@ -719,10 +717,11 @@ async function payWithCrypto() {
             showToast('Ошибка: ' + data.error);
         }
     } catch (error) {
-        alert('Ошибка: ' + error.message);
+        console.error(error);
         showToast('Ошибка при создании счёта');
     }
 }
+
 function showInstructions() {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
