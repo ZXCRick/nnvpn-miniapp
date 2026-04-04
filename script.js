@@ -256,8 +256,7 @@ function refreshStatus() {
 }
 
 function copyKey() {
-    const domain = "nnvpn.shop";
-    const vlessTemplate = `vless://${window.fullKeyValue}@${domain}:443?encryption=none&security=tls&sni=${domain}&type=tcp#NNVPN`;
+    const vlessTemplate = `vless://${window.fullKeyValue}@144.31.151.150:8443?encryption=none&flow=xtls-rprx-vision&security=reality&sni=vk.ru&fp=chrome&pbk=woVukqMoNGwwibSYNV05WHl6-XafN-JGZpdqhCR8V34&sid=6ba85179e30d4fc2&type=tcp#NNVPN`;
     
     if (window.fullKeyValue && window.fullKeyValue !== '') {
         navigator.clipboard.writeText(vlessTemplate);
