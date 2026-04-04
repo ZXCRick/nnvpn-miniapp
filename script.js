@@ -262,14 +262,7 @@ function copyKey() {
         navigator.clipboard.writeText(vlessTemplate);
         showToast('VLESS-ключ скопирован');
     } else {
-        const shortKey = document.getElementById('statusKey').textContent;
-        if (shortKey && shortKey !== '—' && activeKeyData && activeKeyData.key_hash) {
-            const fullVless = `vless://${activeKeyData.key_hash}@${domain}:443?encryption=none&security=tls&sni=${domain}&type=tcp#NNVPN`;
-            navigator.clipboard.writeText(fullVless);
-            showToast('Ключ скопирован');
-        } else {
-            showToast('Ключ не найден');
-        }
+        showToast('Ключ не найден');
     }
 }
 
