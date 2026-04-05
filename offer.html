@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Публичная оферта — NN VPN</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0B0E1A;
+            background-image: radial-gradient(circle at 10% 20%, rgba(39, 224, 168, 0.02) 0%, transparent 50%);
+            color: #E4E6F0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            padding: 24px 16px;
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+            background: #121624;
+            border: 1px solid #1E222F;
+            border-radius: 28px;
+            padding: 28px 24px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(2px);
+            transition: all 0.2s ease;
+        }
+
+        @keyframes fadeSlide {
+            0% {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .container {
+            animation: fadeSlide 0.4s ease-out;
+        }
+
+        h1 {
+            font-size: 26px;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+            color: #27E0A8;
+            display: inline-block;
+            border-left: 4px solid #27E0A8;
+            padding-left: 16px;
+        }
+
+        .sub {
+            color: #8A8C9A;
+            font-size: 13px;
+            margin-bottom: 24px;
+            margin-top: 4px;
+            padding-left: 20px;
+        }
+
+        h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 28px 0 12px 0;
+            color: #CCE0FF;
+            letter-spacing: -0.2px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h2::before {
+            content: "▹";
+            color: #27E0A8;
+            font-size: 18px;
+        }
+
+        p, li {
+            color: #C0C2D0;
+            font-size: 14px;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        ul {
+            margin: 8px 0 12px 24px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        strong {
+            color: #27E0A8;
+            font-weight: 500;
+        }
+
+        .highlight {
+            background: #1A1F2E;
+            border-left: 3px solid #27E0A8;
+            padding: 14px 18px;
+            border-radius: 14px;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+
+        .footer {
+            margin-top: 32px;
+            padding-top: 20px;
+            border-top: 1px solid #1E222F;
+            font-size: 12px;
+            color: #8A8C9A;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        a {
+            color: #27E0A8;
+            text-decoration: none;
+            transition: color 0.2s;
+            font-weight: 500;
+        }
+
+        a:hover {
+            color: #4EE0B0;
+            text-decoration: underline;
+        }
+
+        code {
+            background: #0B0E1A;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            color: #27E0A8;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px;
+            }
+            .container {
+                padding: 20px 18px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            h2 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Публичная оферта</h1>
+    <div class="sub">действует с 5 апреля 2026 года</div>
+
+    <p><strong>Самозанятый</strong> (далее – «Исполнитель») предлагает неограниченному кругу лиц (далее – «Заказчик») доступ к защищённому каналу связи (VPN). Оплата тарифа или активация демо-ключа считаются полным и безоговорочным принятием условий.</p>
+
+    <h2>1. Что предоставляется</h2>
+    <p>1.1. Исполнитель выдаёт уникальный ключ (UUID) для подключения к серверу через клиентские приложения (Happ, NekoBox, v2rayNG и др.).</p>
+    <p>1.2. Сервер шифрует трафик и заменяет IP-адрес – это повышает приватность и защищает данные в публичных сетях.</p>
+    <p>1.3. Исполнитель не гарантирует доступ к любым сайтам: работа отдельных ресурсов может быть ограничена провайдером, государственными системами или самим сайтом. Мы не поддерживаем блокировки, но не можем их контролировать.</p>
+
+    <h2>2. Тарифы и сроки</h2>
+    <p>2.1. <strong>Демо-доступ</strong> – 7 дней бесплатно (один раз на пользователя).</p>
+    <p>2.2. Платные тарифы:</p>
+    <ul>
+        <li>1 месяц — 250 ₽</li>
+        <li>3 месяца — 650 ₽</li>
+        <li>6 месяцев — 1200 ₽</li>
+        <li>12 месяцев — 2200 ₽</li>
+    </ul>
+    <p>2.3. Ключ активируется сразу после оплаты и действует весь выбранный срок. Для продления необходимо повторно оплатить тариф.</p>
+    <p>2.4. Цены могут быть изменены с предупреждением за 7 дней через Telegram-бота.</p>
+
+    <div class="highlight">
+        💡 <strong>Демо-ключ</strong> — лучший способ проверить качество. Если что-то не устраивает, вы просто не оплачиваете подписку.
+    </div>
+
+    <h2>3. Что запрещено</h2>
+    <ul>
+        <li>Использовать VPN для DDoS-атак, взлома, спама, распространения вредоносного ПО, фишинга.</li>
+        <li>Создавать аномальную нагрузку на сервер (например, массовые торренты, автоматические парсеры).</li>
+        <li>Нарушать законы своей страны через сервис.</li>
+    </ul>
+    <p>При нарушении ключ блокируется без возврата денег.</p>
+
+    <h2>4. Отказ от ответственности</h2>
+    <p>4.1. Исполнитель не отвечает за недоступность отдельных сайтов – это может быть вызвано внешними блокировками (провайдер, государство, хостинг ресурса).</p>
+    <p>4.2. Сервис предоставляется «как есть» (as is). Исполнитель не гарантирует 100% стабильность, но прикладывает усилия для поддержания работы.</p>
+    <p>4.3. В случае форс-мажора (сбои хостинга, атаки, блокировки) доступ может быть временно ограничен – это не является основанием для возврата.</p>
+
+    <h2>5. Деньги и возврат</h2>
+    <p>5.1. Оплата производится через платёжные системы, указанные в Mini App (CryptoBot, ЮKassa и др.).</p>
+    <p>5.2. Демо-ключ не обменивается на деньги и не суммируется с другими тарифами.</p>
+    <p>5.3. <strong>Возврат денег за оплаченный тариф не производится</strong> – услуга имеет индивидуально-определённые свойства (ст. 26.1 Закона РФ «О защите прав потребителей»).</p>
+
+    <h2>6. Конфиденциальность</h2>
+    <p>Исполнитель <strong>не собирает и не хранит персональные данные</strong> Заказчика. Платёжные данные обрабатываются агрегаторами – Исполнитель к ним доступа не имеет. <code>tg_id</code> используется только для идентификации и не является персональными данными по 152-ФЗ.</p>
+
+    <h2>7. Контакты</h2>
+    <p>Все вопросы, претензии и заявления принимаются через Telegram:</p>
+    <ul>
+        <li>🤖 Бот: <a href="https://t.me/vpnNoNamebot">@vpnNoNamebot</a></li>
+        <li>🆘 Поддержка: <a href="https://t.me/nnvpn_support">@nnvpn_support</a></li>
+    </ul>
+
+    <div class="footer">
+        <span>📅 Оферта действует с 05.04.2026</span>
+        <span>⚖️ Исполнитель: Самозанятый (ИНН по запросу)</span>
+    </div>
+</div>
+</body>
+</html>
