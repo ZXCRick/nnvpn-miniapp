@@ -454,7 +454,7 @@ document.querySelectorAll('.dropdown-item').forEach(item => {
     item.addEventListener('click', () => {
         const action = item.dataset.action;
         if (action === 'offer') {
-            tg.openWebView('https://zxcrick.github.io/nnvpn-miniapp/offer.html', 'Публичная оферта', { mode: 'compact' });
+            tg.openLink('https://zxcrick.github.io/nnvpn-miniapp/offer.html');
         } else if (action === 'other') {
             tg.showAlert('Функция в разработке');
         }
