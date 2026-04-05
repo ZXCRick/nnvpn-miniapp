@@ -1171,6 +1171,7 @@ body {
     word-break: break-all;
 }
 
+/* Ссылка на оферту в профиле */
 .profile-footer {
     margin-top: 16px;
     text-align: center;
