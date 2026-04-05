@@ -22,10 +22,8 @@ window.fullKeyValue = '';
 window.addEventListener('load', async function() {
     try {
         await loadAllDataWithTimeout();
-        
         const splashScreen = document.getElementById('splashScreen');
         const app = document.getElementById('app');
-        
         if (splashScreen) splashScreen.classList.add('hidden');
         if (app) app.classList.add('visible');
     } catch (error) {
@@ -56,11 +54,10 @@ async function loadAllDataWithTimeout(timeoutMs = 10000) {
     const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Таймаут')), timeoutMs));
     const loadPromise = (async () => {
         await loadProfile();
-        await loadStatus();
+        await loadStatus();      // ← восстановлено!
         await loadHistory();
         if (isAdmin) {
             await loadPromoLinks();
-            await loadStats();
         }
         allDataLoaded = true;
     })();
@@ -520,143 +517,6 @@ function refreshPromoStats() {
     loadPromoLinks();
 }
 
-// ========== СТАТИСТИКА ==========
-async function loadStats() {
-    if (!isAdmin) return;
-    try {
-        const stats = await fetchStatsFromSupabase();
-        safeSetText('statsTotalUsers', stats.totalUsers);
-        safeSetText('statsActiveToday', stats.activeToday);
-        safeSetText('statsNewWeek', stats.newWeek);
-        safeSetText('statsDemoKeys', stats.demoKeys);
-        safeSetText('statsTotalSales', stats.totalSales);
-        safeSetText('statsTotalRevenue', stats.totalRevenue);
-        safeSetText('statsMonthRevenue', stats.monthRevenue);
-        safeSetText('statsAvgCheck', stats.avgCheck);
-        safeSetText('statsClickToDemo', stats.clickToDemo);
-        safeSetText('statsDemoToPaid', stats.demoToPaid);
-        safeSetText('statsChurn', stats.churn);
-        safeSetText('statsLTV', stats.ltv);
-    } catch (error) {
-        console.error('Ошибка загрузки статистики:', error);
-        showToast('Ошибка загрузки статистики');
-    }
-}
-
-async function fetchStatsFromSupabase() {
-    try {
-        const usersRes = await fetch(`${SUPABASE_URL}/rest/v1/users?select=id,created_at`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const users = await usersRes.json();
-        const totalUsers = users?.length || 0;
-        
-        const keysRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=id,user_id,type,created_at,expires_at&is_active=eq.true`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const activeKeys = await keysRes.json();
-        const activeCount = activeKeys?.length || 0;
-        const demoCount = (activeKeys || []).filter(k => k.type === 'demo').length;
-        
-        const paymentsRes = await fetch(`${SUPABASE_URL}/rest/v1/payments?select=amount_rub,created_at,status,user_id`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const payments = await paymentsRes.json();
-        const completed = payments?.filter(p => p.status === 'completed') || [];
-        const totalRevenue = completed.reduce((sum, p) => sum + (p.amount_rub || 0), 0);
-        const totalSales = completed.length;
-        
-        const oneMonthAgo = new Date();
-        oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-        const monthRevenue = completed.filter(p => new Date(p.created_at) > oneMonthAgo).reduce((sum, p) => sum + (p.amount_rub || 0), 0);
-        
-        const avgCheck = totalSales > 0 ? Math.round(totalRevenue / totalSales) : 0;
-        
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        const newUsersCount = (users || []).filter(u => new Date(u.created_at) > oneWeekAgo).length;
-        
-        const activeToday = Math.round(activeCount * 0.3);
-        
-        let demoToPaid = 0;
-        const allDemoRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&type=eq.demo`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const allDemo = await allDemoRes.json();
-        const demoUsers = [...new Set((allDemo || []).map(k => k.user_id))];
-        const payingUsers = [...new Set(completed.map(p => p.user_id))];
-        const paidFromDemo = demoUsers.filter(uid => payingUsers.includes(uid));
-        demoToPaid = demoUsers.length > 0 ? Math.round((paidFromDemo.length / demoUsers.length) * 100) : 0;
-        
-        let clickToDemo = 0;
-        const promoRes = await fetch(`${SUPABASE_URL}/rest/v1/promo_clicks?select=id,converted_to_demo`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const promoData = await promoRes.json();
-        const totalClicks = promoData?.length || 0;
-        const convertedClicks = (promoData || []).filter(c => c.converted_to_demo === true).length;
-        clickToDemo = totalClicks > 0 ? Math.round((convertedClicks / totalClicks) * 100) : 0;
-        
-        let churn = 0;
-        const expiredRes = await fetch(`${SUPABASE_URL}/rest/v1/keys?select=user_id&is_active=eq.false`, {
-            headers: { "apikey": SUPABASE_KEY, "Authorization": `Bearer ${SUPABASE_KEY}` }
-        });
-        const expiredKeys = await expiredRes.json();
-        const expiredUsers = [...new Set((expiredKeys || []).map(k => k.user_id))];
-        const churnedUsers = expiredUsers.filter(uid => !payingUsers.includes(uid));
-        churn = expiredUsers.length > 0 ? Math.round((churnedUsers.length / expiredUsers.length) * 100) : 0;
-        
-        let ltv = 0;
-        const avgPurchasesPerUser = payingUsers.length > 0 ? (totalSales / payingUsers.length) : 0;
-        ltv = Math.round(avgCheck * avgPurchasesPerUser);
-        
-        return {
-            totalUsers: formatNumber(totalUsers),
-            activeToday: formatNumber(activeToday),
-            newWeek: formatNumber(newUsersCount),
-            demoKeys: formatNumber(demoCount),
-            totalSales: formatNumber(totalSales),
-            totalRevenue: formatMoney(totalRevenue),
-            monthRevenue: formatMoney(monthRevenue),
-            avgCheck: formatMoney(avgCheck),
-            clickToDemo: clickToDemo + '%',
-            demoToPaid: demoToPaid + '%',
-            churn: churn + '%',
-            ltv: formatMoney(ltv)
-        };
-    } catch (error) {
-        console.error('Ошибка fetchStatsFromSupabase:', error);
-        return {
-            totalUsers: '0', activeToday: '0', newWeek: '0', demoKeys: '0',
-            totalSales: '0', totalRevenue: '0 ₽', monthRevenue: '0 ₽', avgCheck: '0 ₽',
-            clickToDemo: '0%', demoToPaid: '0%', churn: '0%', ltv: '0 ₽'
-        };
-    }
-}
-
-function formatNumber(num) {
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
-}
-
-function formatMoney(amount) {
-    if (amount >= 1000) return (amount / 1000).toFixed(1) + 'K ₽';
-    return amount + ' ₽';
-}
-
-function refreshStats() { 
-    loadStats(); 
-    showToast('Статистика обновлена');
-}
-
-function showToast(text, duration = 3000) {
-    const toast = document.getElementById('toast');
-    if (!toast) return;
-    toast.textContent = text;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), duration);
-}
-
 // ========== ТАРИФЫ ==========
 const plans = {
     month: { name: '1 месяц', price: 250, type: 'PREMIUM', devices: 2, days: 30 },
@@ -749,12 +609,11 @@ document.querySelectorAll('.nav-btn').forEach(btn => {
         const activeTab = document.getElementById(tabId);
         if (activeTab) {
             activeTab.classList.add('active');
-            
             animateTabContent(tabId);
             
+            // Вызываем соответствующие функции загрузки данных
             if (this.dataset.tab === 'status') loadStatus();
             else if (this.dataset.tab === 'history') loadHistory();
-            else if (this.dataset.tab === 'stats' && isAdmin) loadStats();
             else if (this.dataset.tab === 'promo' && isAdmin) loadPromoLinks();
         }
     });
@@ -773,14 +632,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const defaultTabContent = document.getElementById('tab-status');
     if (defaultTabContent) defaultTabContent.classList.add('active');
     
-    await loadProfile();
-    await loadStatus();
-    await loadHistory();
-    
-    if (isAdmin) {
-        await loadPromoLinks();
-        await loadStats();
-    }
+    // Все данные уже загружаются через loadAllDataWithTimeout,
+    // но можно оставить для подстраховки
+    // await loadProfile();
+    // await loadStatus();
+    // await loadHistory();
+    // if (isAdmin) await loadPromoLinks();
     
     const modal = document.getElementById('paymentModal');
     if (modal) {
