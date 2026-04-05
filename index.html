@@ -44,6 +44,12 @@
             </div>
         </div>
 
+        <!-- Выпадающее меню -->
+        <div class="dropdown-menu" id="dropdownMenu">
+            <div class="dropdown-item" data-action="offer">📄 Публичная оферта</div>
+            <div class="dropdown-item" data-action="other">⚙️ Другие настройки</div>
+        </div>
+
         <div class="welcome-banner animate-on-load">
             <div class="welcome-text">
                 <h1>Добро пожаловать, <span id="userName">Пользователь</span></h1>
@@ -81,6 +87,7 @@
             <button class="nav-btn active" data-tab="status">Статус</button>
             <button class="nav-btn" data-tab="plans">Тарифы</button>
             <button class="nav-btn" data-tab="history">История</button>
+            <button class="nav-btn" data-tab="instructions">Инструкция</button>
             <button class="nav-btn admin-only" data-tab="promo">Промо</button>
         </nav>
 
@@ -186,42 +193,6 @@
                 </div>
             </div>
 
-            <div class="tab" id="tab-promo">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">Промо-кампании</h2>
-                </div>
-                <div class="promo-summary">
-                    <div class="summary-card">
-                        <div class="summary-label">Всего кликов</div>
-                        <div class="summary-value" id="promoTotalClicks">0</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Переходов в демо</div>
-                        <div class="summary-value" id="promoTotalDemos">0</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Конверсия</div>
-                        <div class="summary-value" id="promoTotalConv">0%</div>
-                    </div>
-                </div>
-                <div class="promo-create">
-                    <h3 class="promo-subtitle">Новая ссылка</h3>
-                    <div class="create-form">
-                        <input type="text" id="promoNameInput" placeholder="Название кампании" class="promo-input">
-                        <button class="btn" onclick="createPromoLink()">Создать</button>
-                    </div>
-                </div>
-                <div class="promo-links">
-                    <h3 class="promo-subtitle">Промо ссылки</h3>
-                    <div id="promoLinksList">
-                        <div class="empty-state">
-                            <p>Нет созданных ссылок</p>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-outline" onclick="refreshPromoStats()">Обновить статистику</button>
-            </div>
-
             <div class="tab" id="tab-instructions">
                 <div class="section-title-wrapper">
                     <h2 class="section-title">Инструкция</h2>
@@ -256,6 +227,42 @@
                         <li>Turn On</li>
                     </ol>
                 </div>
+            </div>
+
+            <div class="tab" id="tab-promo">
+                <div class="section-title-wrapper">
+                    <h2 class="section-title">Промо-кампании</h2>
+                </div>
+                <div class="promo-summary">
+                    <div class="summary-card">
+                        <div class="summary-label">Всего кликов</div>
+                        <div class="summary-value" id="promoTotalClicks">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Переходов в демо</div>
+                        <div class="summary-value" id="promoTotalDemos">0</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">Конверсия</div>
+                        <div class="summary-value" id="promoTotalConv">0%</div>
+                    </div>
+                </div>
+                <div class="promo-create">
+                    <h3 class="promo-subtitle">Новая ссылка</h3>
+                    <div class="create-form">
+                        <input type="text" id="promoNameInput" placeholder="Название кампании" class="promo-input">
+                        <button class="btn" onclick="createPromoLink()">Создать</button>
+                    </div>
+                </div>
+                <div class="promo-links">
+                    <h3 class="promo-subtitle">Промо ссылки</h3>
+                    <div id="promoLinksList">
+                        <div class="empty-state">
+                            <p>Нет созданных ссылок</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="btn btn-outline" onclick="refreshPromoStats()">Обновить статистику</button>
             </div>
         </div>
     </div>
