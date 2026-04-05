@@ -78,7 +78,6 @@
             <button class="nav-btn active" data-tab="status">Статус</button>
             <button class="nav-btn" data-tab="plans">Тарифы</button>
             <button class="nav-btn" data-tab="history">История</button>
-            <button class="nav-btn admin-only" data-tab="stats">Статистика</button>
             <button class="nav-btn admin-only" data-tab="promo">Промо</button>
         </nav>
 
@@ -182,76 +181,6 @@
                         <p>Загрузка...</p>
                     </div>
                 </div>
-            </div>
-
-            <div class="tab" id="tab-stats">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">Статистика</h2>
-                </div>
-                <div class="stats-section">
-                    <h3 class="stats-subtitle">Пользователи</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Всего</div>
-                            <div class="stat-value" id="statsTotalUsers">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Активных сегодня</div>
-                            <div class="stat-value" id="statsActiveToday">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Новых за неделю</div>
-                            <div class="stat-value" id="statsNewWeek">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Демо-ключей</div>
-                            <div class="stat-value" id="statsDemoKeys">0</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="stats-section">
-                    <h3 class="stats-subtitle">Финансы</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Всего продаж</div>
-                            <div class="stat-value" id="statsTotalSales">0</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Выручка</div>
-                            <div class="stat-value" id="statsTotalRevenue">0 ₽</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">За месяц</div>
-                            <div class="stat-value" id="statsMonthRevenue">0 ₽</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Средний чек</div>
-                            <div class="stat-value" id="statsAvgCheck">0 ₽</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="stats-section">
-                    <h3 class="stats-subtitle">Конверсия</h3>
-                    <div class="stats-grid">
-                        <div class="stat-card">
-                            <div class="stat-label">Клики → Демо</div>
-                            <div class="stat-value" id="statsClickToDemo">0%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Демо → Покупка</div>
-                            <div class="stat-value" id="statsDemoToPaid">0%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">Отказов</div>
-                            <div class="stat-value" id="statsChurn">0%</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-label">LTV</div>
-                            <div class="stat-value" id="statsLTV">0 ₽</div>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn" onclick="refreshStats()">Обновить</button>
             </div>
 
             <div class="tab" id="tab-promo">
