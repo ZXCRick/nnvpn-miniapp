@@ -197,15 +197,7 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-}
-.logo-icon {
-    font-size: 20px;
-    color: #27E0A8;
-}
-.logo-text {
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    flex-shrink: 0;
 }
 .header-status {
     display: flex;
@@ -213,13 +205,7 @@ body {
     gap: 6px;
     font-size: 13px;
     color: #8A8C9A;
-}
-.status-dot {
-    width: 6px;
-    height: 6px;
-    background: #27E0A8;
-    border-radius: 50%;
-    animation: statusPulse 2s ease-in-out infinite;
+    flex-shrink: 0;
 }
 .header-menu {
     cursor: pointer;
@@ -230,6 +216,7 @@ body {
     justify-content: center;
     border-radius: 8px;
     transition: background 0.2s;
+    flex-shrink: 0;
 }
 .header-menu:hover {
     background: #1E222F;
