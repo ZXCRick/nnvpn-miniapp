@@ -185,7 +185,7 @@ body {
     transform: translateY(0);
 }
 
-/* ===== ХЕДЕР ===== */
+/* ===== ХЕДЕР И МЕНЮ ===== */
 .header {
     display: flex;
     justify-content: space-between;
@@ -221,7 +221,6 @@ body {
     border-radius: 50%;
     animation: statusPulse 2s ease-in-out infinite;
 }
-/* Меню три точки */
 .header-menu {
     cursor: pointer;
     width: 32px;
@@ -240,6 +239,34 @@ body {
     font-weight: 500;
     color: #8A8C9A;
     line-height: 1;
+}
+.dropdown-menu {
+    position: fixed;
+    top: 60px;
+    right: 16px;
+    background: #121624;
+    border: 1px solid #1E222F;
+    border-radius: 12px;
+    padding: 8px 0;
+    min-width: 180px;
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+.dropdown-menu.show {
+    display: flex;
+}
+.dropdown-item {
+    padding: 10px 16px;
+    color: #E4E6F0;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.dropdown-item:hover {
+    background: #1E222F;
+    color: #27E0A8;
 }
 
 /* ===== ПРИВЕТСТВИЕ ===== */
@@ -837,50 +864,32 @@ body {
     color: #8A8C9A;
 }
 
-/* ===== ВКЛАДКА ОФЕРТЫ ===== */
-.offer-content {
+/* ===== ВКЛАДКА ИНСТРУКЦИИ ===== */
+.instructions-card {
     background: #121624;
     border: 1px solid #1E222F;
     border-radius: 16px;
-    padding: 16px;
-    font-size: 13px;
-    line-height: 1.5;
-    color: #C0C2D0;
+    padding: 20px;
+    margin-bottom: 20px;
 }
-.offer-content h1 {
-    font-size: 20px;
-    margin-bottom: 12px;
-    color: #27E0A8;
-}
-.offer-content h2 {
+.instructions-card h3 {
     font-size: 16px;
+    font-weight: 600;
     margin: 16px 0 8px;
-    color: #CCE0FF;
-}
-.offer-content p {
-    margin-bottom: 8px;
-}
-.offer-content ul {
-    margin-left: 20px;
-    margin-bottom: 12px;
-}
-.offer-content li {
-    margin-bottom: 4px;
-}
-.offer-content strong {
     color: #27E0A8;
 }
-.offer-content .highlight {
-    background: #1A1F2E;
-    border-left: 3px solid #27E0A8;
-    padding: 10px 12px;
-    border-radius: 12px;
-    margin: 16px 0;
+.instructions-card h3:first-child {
+    margin-top: 0;
 }
-.loading-state {
-    text-align: center;
-    padding: 40px;
+.instructions-card ol {
+    margin: 8px 0 16px;
+    padding-left: 20px;
+}
+.instructions-card li {
     color: #8A8C9A;
+    font-size: 13px;
+    margin-bottom: 6px;
+    line-height: 1.4;
 }
 
 /* ===== МОДАЛКА ===== */
@@ -977,30 +986,4 @@ body {
 }
 .tab.active {
     display: block;
-}
-.instructions-card {
-    background: #121624;
-    border: 1px solid #1E222F;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-.instructions-card h3 {
-    font-size: 16px;
-    font-weight: 600;
-    margin: 16px 0 8px;
-    color: #27E0A8;
-}
-.instructions-card h3:first-child {
-    margin-top: 0;
-}
-.instructions-card ol {
-    margin: 8px 0 16px;
-    padding-left: 20px;
-}
-.instructions-card li {
-    color: #8A8C9A;
-    font-size: 13px;
-    margin-bottom: 6px;
-    line-height: 1.4;
 }
