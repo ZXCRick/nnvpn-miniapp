@@ -54,9 +54,7 @@ async function loadAllDataWithTimeout(timeoutMs = 10000) {
         await loadProfile();
         await loadStatus();
         await loadHistory();
-        if (isAdmin) {
-            await loadPromoLinks();
-        }
+        if (isAdmin) await loadPromoLinks();
         allDataLoaded = true;
     })();
     await Promise.race([loadPromise, timeoutPromise]);
@@ -436,25 +434,33 @@ async function payWithCrypto() {
     } catch (error) { console.error(error); showToast('Ошибка при создании счёта'); }
 }
 
-// ========== МЕНЮ (ТРИ ТОЧКИ) ==========
-function showMenu() {
-    tg.showPopup({
-        title: 'Меню',
-        buttons: [
-            { id: 'offer', text: '📄 Публичная оферта', type: 'default' },
-            { id: 'instructions', text: '📖 Инструкция', type: 'default' },
-            { id: 'cancel', text: 'Отмена', type: 'cancel' }
-        ]
-    }, (buttonId) => {
-        if (buttonId === 'offer') {
-            tg.openWebView('https://zxcrick.github.io/nnvpn-miniapp/offer.html', 'Публичная оферта', { mode: 'compact' });
-        } else if (buttonId === 'instructions') {
-            const instructionsBtn = document.querySelector('.nav-btn[data-tab="instructions"]');
-            if (instructionsBtn) instructionsBtn.click();
-        }
-    });
+// ========== ВЫПАДАЮЩЕЕ МЕНЮ ==========
+const menuBtn = document.getElementById('headerMenu');
+const dropdown = document.getElementById('dropdownMenu');
+
+function toggleMenu() {
+    dropdown.classList.toggle('show');
 }
-document.getElementById('headerMenu')?.addEventListener('click', showMenu);
+document.addEventListener('click', function(event) {
+    if (!menuBtn.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.remove('show');
+    }
+});
+menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    toggleMenu();
+});
+document.querySelectorAll('.dropdown-item').forEach(item => {
+    item.addEventListener('click', () => {
+        const action = item.dataset.action;
+        if (action === 'offer') {
+            tg.openWebView('https://zxcrick.github.io/nnvpn-miniapp/offer.html', 'Публичная оферта', { mode: 'compact' });
+        } else if (action === 'other') {
+            tg.showAlert('Функция в разработке');
+        }
+        dropdown.classList.remove('show');
+    });
+});
 
 function showInstructions() {
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
