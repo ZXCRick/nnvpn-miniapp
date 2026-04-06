@@ -3,278 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NN VPN</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <title>NN VPN — Новый адрес</title>
+    <meta http-equiv="refresh" content="3; url=https://nnvpn.shop">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+        }
+        .logo {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #fff, #8b9eff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        p {
+            font-size: 16px;
+            color: #a0a5c0;
+            margin-bottom: 32px;
+            line-height: 1.5;
+        }
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            text-decoration: none;
+            padding: 14px 32px;
+            border-radius: 40px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        .redirect-note {
+            font-size: 14px;
+            color: #6b6f8c;
+        }
+        .redirect-note a {
+            color: #8b9eff;
+            text-decoration: none;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        @media (max-width: 480px) {
+            h1 { font-size: 24px; }
+            .btn { padding: 12px 28px; }
+        }
+    </style>
 </head>
 <body>
-    <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo">
-            <div class="logo-circle">
-                <div class="logo-inner-circle">
-                    <span class="logo-text-splash">NN</span>
-                </div>
-            </div>
-            <div class="logo-particles">
-                <div class="particle p1"></div>
-                <div class="particle p2"></div>
-                <div class="particle p3"></div>
-                <div class="particle p4"></div>
-                <div class="particle p5"></div>
-                <div class="particle p6"></div>
-                <div class="particle p7"></div>
-                <div class="particle p8"></div>
-            </div>
-        </div>
-        <div class="loading-text">Загружаем данные...</div>
+    <div class="container">
+        <div class="logo">⚡</div>
+        <h1>Обновите ссылку</h1>
+        <p>Мы перенесли личный кабинет на новый,<br>более быстрый и защищённый адрес.</p>
+        <div class="spinner"></div>
+        <a href="https://nnvpn.shop" class="btn">Перейти в новый кабинет</a>
+        <p class="redirect-note">Через 3 секунды вы будете перенаправлены автоматически<br>или нажмите на кнопку выше</p>
     </div>
-
-    <div class="app" id="app">
-        <div class="header">
-            <div class="logo">
-                <span class="logo-icon">⚡</span>
-                <span class="logo-text">NN VPN</span>
-            </div>
-            <div class="header-menu" id="headerMenu">
-                <span class="menu-dots">⋮</span>
-            </div>
-        </div>
-
-        <!-- Выпадающее меню -->
-        <div class="dropdown-menu" id="dropdownMenu">
-            <div class="dropdown-item" data-action="offer">Публичная оферта</div>
-            <div class="dropdown-item" data-action="other">Другие настройки</div>
-        </div>
-
-        <div class="welcome-banner animate-on-load">
-            <div class="welcome-text">
-                <h1>Добро пожаловать, <span id="userName">Пользователь</span></h1>
-                <p>Ваш личный кабинет NN VPN</p>
-            </div>
-        </div>
-
-        <div class="profile-section animate-on-load">
-            <div class="profile-header">
-                <div class="profile-avatar" id="profileAvatar">
-                    <img id="avatarImage" src="" alt="" style="display: none;">
-                    <span id="avatarPlaceholder"></span>
-                </div>
-                <div class="profile-info">
-                    <div class="profile-name-wrapper">
-                        <h2 id="profileName">Загрузка...</h2>
-                        <span class="badge" id="profileTier">FREE</span>
-                    </div>
-                    <div class="profile-id">ID: <span id="profileId">...</span></div>
-                </div>
-            </div>
-            <div class="profile-stats">
-                <div class="stat-item">
-                    <div class="stat-label">Username</div>
-                    <div class="stat-value" id="profileUsername">@...</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">На сервисе с</div>
-                    <div class="stat-value" id="profileJoinDate">...</div>
-                </div>
-            </div>
-        </div>
-
-        <nav class="nav animate-on-load">
-            <button class="nav-btn active" data-tab="status">Статус</button>
-            <button class="nav-btn" data-tab="plans">Тарифы</button>
-            <button class="nav-btn" data-tab="history">История</button>
-            <button class="nav-btn admin-only" data-tab="promo">Промо</button>
-        </nav>
-
-        <div class="content">
-            <div class="tab active" id="tab-status">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">Статус подписки</h2>
-                    <div class="help-badge blink" onclick="showInstructions()">инструкция</div>
-                </div>
-                <div class="status-card animate-on-load">
-                    <div class="status-header">
-                        <span class="status-label">Тариф</span>
-                        <span class="status-value" id="statusTier">FREE</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="statusProgress" style="width: 0%"></div>
-                    </div>
-                    <div class="status-info">
-                        <div class="info-row">
-                            <span class="info-label">Ключ</span>
-                            <span class="info-value" id="statusKey">—</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Статус</span>
-                            <span class="info-value" id="keyStatus">—</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Действует до</span>
-                            <span class="info-value" id="statusExpires">—</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Устройств</span>
-                            <span class="info-value" id="statusDevices">0/2</span>
-                        </div>
-                    </div>
-                    <button class="btn" onclick="copyKey()">Копировать ключ</button>
-                </div>
-                <button class="btn btn-outline animate-on-load" onclick="refreshStatus()">Обновить</button>
-            </div>
-
-            <div class="tab" id="tab-plans">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">Тарифы</h2>
-                </div>
-                <div class="plans">
-                    <div class="plan-card" onclick="selectPlan('month')">
-                        <div class="plan-name">1 месяц</div>
-                        <div class="plan-price">250 ₽</div>
-                        <ul class="plan-features">
-                            <li>2 устройства</li>
-                            <li>Безлимитный трафик</li>
-                            <li>Все сервера</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                    <div class="plan-card" onclick="selectPlan('quarter')">
-                        <div class="plan-badge">−13%</div>
-                        <div class="plan-name">3 месяца</div>
-                        <div class="plan-price">650 ₽</div>
-                        <div class="plan-old-price">750 ₽</div>
-                        <ul class="plan-features">
-                            <li>3 устройства</li>
-                            <li>Безлимитный трафик</li>
-                            <li>Все сервера</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                    <div class="plan-card" onclick="selectPlan('halfyear')">
-                        <div class="plan-badge">−20%</div>
-                        <div class="plan-name">6 месяцев</div>
-                        <div class="plan-price">1 200 ₽</div>
-                        <div class="plan-old-price">1 500 ₽</div>
-                        <ul class="plan-features">
-                            <li>4 устройства</li>
-                            <li>Безлимитный трафик</li>
-                            <li>Все сервера</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                    <div class="plan-card" onclick="selectPlan('year')">
-                        <div class="plan-badge">−27%</div>
-                        <div class="plan-name">12 месяцев</div>
-                        <div class="plan-price">2 200 ₽</div>
-                        <div class="plan-old-price">3 000 ₽</div>
-                        <ul class="plan-features">
-                            <li>5 устройств</li>
-                            <li>Безлимитный трафик</li>
-                            <li>Все сервера</li>
-                        </ul>
-                        <button class="btn">Выбрать</button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab" id="tab-history">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">История операций</h2>
-                </div>
-                <div class="history-list" id="historyList">
-                    <div class="empty-state">
-                        <p>Загрузка...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tab" id="tab-instructions">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">Инструкция</h2>
-                </div>
-                <div class="instructions-card">
-                    <h3>iOS (Happ)</h3>
-                    <ol>
-                        <li>Скачайте Happ из App Store</li>
-                        <li>Откройте приложение → нажмите + → Import from Clipboard</li>
-                        <li>Вставьте скопированный ключ → Сохранить</li>
-                        <li>Включите переключатель</li>
-                    </ol>
-                    <h3>Android (Happ)</h3>
-                    <ol>
-                        <li>Скачайте Happ из Google Play или официального сайта</li>
-                        <li>Откройте → нажмите + → Импорт из буфера обмена</li>
-                        <li>Вставьте ключ → Сохранить</li>
-                        <li>Включите VPN</li>
-                    </ol>
-                    <h3>Windows (Happ)</h3>
-                    <ol>
-                        <li>Скачайте Happ с официального сайта</li>
-                        <li>Откройте приложение → Сервер → Импорт из буфера обмена</li>
-                        <li>Вставьте ключ → Сохранить</li>
-                        <li>Включите подключение</li>
-                    </ol>
-                    <h3>macOS (Happ)</h3>
-                    <ol>
-                        <li>Скачайте Happ с официального сайта</li>
-                        <li>Нажмите на иконку в строке меню → Import Server from Clipboard</li>
-                        <li>Вставьте ключ → Сохранить</li>
-                        <li>Turn On</li>
-                    </ol>
-                </div>
-            </div>
-
-            <div class="tab" id="tab-promo">
-                <div class="section-title-wrapper">
-                    <h2 class="section-title">Промо-кампании</h2>
-                </div>
-                <div class="promo-summary">
-                    <div class="summary-card">
-                        <div class="summary-label">Всего кликов</div>
-                        <div class="summary-value" id="promoTotalClicks">0</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Переходов в демо</div>
-                        <div class="summary-value" id="promoTotalDemos">0</div>
-                    </div>
-                    <div class="summary-card">
-                        <div class="summary-label">Конверсия</div>
-                        <div class="summary-value" id="promoTotalConv">0%</div>
-                    </div>
-                </div>
-                <div class="promo-create">
-                    <h3 class="promo-subtitle">Новая ссылка</h3>
-                    <div class="create-form">
-                        <input type="text" id="promoNameInput" placeholder="Название кампании" class="promo-input">
-                        <button class="btn" onclick="createPromoLink()">Создать</button>
-                    </div>
-                </div>
-                <div class="promo-links">
-                    <h3 class="promo-subtitle">Промо ссылки</h3>
-                    <div id="promoLinksList">
-                        <div class="empty-state">
-                            <p>Нет созданных ссылок</p>
-                        </div>
-                    </div>
-                </div>
-                <button class="btn btn-outline" onclick="refreshPromoStats()">Обновить статистику</button>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal" id="paymentModal">
-        <div class="modal-content">
-            <h3 id="modalTitle">Оплата</h3>
-            <p id="modalDescription"></p>
-            <div class="payment-methods">
-                <button class="payment-btn" onclick="payWithCrypto()">💎 CryptoBot (USDT)</button>
-            </div>
-            <button class="btn btn-danger" onclick="closeModal()">Отмена</button>
-        </div>
-    </div>
-
-    <div class="toast" id="toast"></div>
-
-    <script src="script.js"></script>
 </body>
 </html>
